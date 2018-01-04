@@ -1,10 +1,1 @@
-@echo off
-
-pushd src
-
-dotnet restore
-dotnet build -c Release
-dotnet test OutCode.EscapeTeams.ObjectRepository.Tests
-dotnet pack -c Release
-
-popd
+@powershell -ExecutionPolicy ByPass -File ./src/build.ps1 -target publish -configuration release
