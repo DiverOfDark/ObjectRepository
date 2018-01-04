@@ -25,3 +25,11 @@ deploy:
     secure: ok2oM7BCMYFhta85N4Q7szqKoND6VUlzYAJtJGUMpVjGMrwmvSr0JT+ca4qttbwZ
   on:
     branch: master
+
+cache:
+- src/.tmp
+notifications:
+- provider: GitHubPullRequest
+  auth_token:
+    secure: AjyesjKpdlKkrkxC8UJqTdjCsggbNRplRpV/PEjEM8JzGx5vB4kVvLJPTc2P73UO
+  template: "{{#passed}}:white_check_mark:{{/passed}}{{#failed}}:x:{{/failed}} [Build {{&projectName}} {{buildVersion}} {{status}}]({{buildUrl}}) (commit {{commitUrl}} by @{{&commitAuthorUsername}})"
