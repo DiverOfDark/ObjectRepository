@@ -3,12 +3,6 @@ pull_requests:
   do_not_increment_build_number: true
 image: Visual Studio 2017
 configuration: Release
-assembly_info:
-  patch: true
-  file: '**\AssemblyInfo.*'
-  assembly_version: '{version}'
-  assembly_file_version: '{version}'
-  assembly_informational_version: '{version}'
 dotnet_csproj:
   patch: true
   file: '**\*.csproj'
@@ -18,10 +12,9 @@ dotnet_csproj:
   file_version: '{version}'
   informational_version: '{version}'
 build_script:
-
 - cmd: >-
     build.cmd
 
 artifacts:
-- path: '**\*.nupkg'
+- path: 'output\*.nupkg'
   name: NuGet
