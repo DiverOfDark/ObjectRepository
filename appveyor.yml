@@ -20,11 +20,4 @@ dotnet_csproj:
 build_script:
 
 - cmd: >-
-    pushd src
-
-    dotnet restore
-    dotnet build -c Release
-    dotnet test OutCode.EscapeTeams.ObjectRepository.Tests
-    dotnet pack -c Release
-
-    popd
+    build.cmd
