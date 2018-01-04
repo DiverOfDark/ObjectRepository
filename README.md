@@ -1,5 +1,5 @@
 # ObjectRepository
-EscapeTeams In-Memory Object Database
+EscapeTeams In-Memory Object Database [![Build status](https://ci.appveyor.com/api/projects/status/5ofaya2rcml1v3nq?svg=true)](https://ci.appveyor.com/project/DiverOfDark/objectrepository)
 
 This is an in-memory object database which was developed for EscapeTeams.ru site.
 
