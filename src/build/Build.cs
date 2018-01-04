@@ -56,6 +56,8 @@ class Build : NukeBuild
             DotNetTest(x=> x.
                 SetNoRestore(true).
                 SetNoBuild(true).
+                SetTestAdapterPath(".").
+                SetLogger("Appveyor").
                 SetProjectFile(SolutionDirectory / "OutCode.EscapeTeams.ObjectRepository.Tests" / "OutCode.EscapeTeams.ObjectRepository.Tests.csproj"));
         });
     
