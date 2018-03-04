@@ -11,7 +11,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
 
         public Task<IEnumerable<T>> GetAll<T>() => Task.FromResult(Enumerable.Empty<T>());
 
-        public void Track(ObjectRepositoryBase objectRepository)
+        public void Track(ObjectRepositoryBase objectRepository, bool isReadonly)
         {
         }
 

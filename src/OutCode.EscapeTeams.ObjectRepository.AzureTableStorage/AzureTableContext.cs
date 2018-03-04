@@ -13,9 +13,10 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
     /// <summary>
     /// Data Context bound to Azure Table Storage.
     /// </summary>
-    public class AzureTableContext : IStorage
+    public class AzureTableContext : IStorage, IDisposable
     {
         private readonly CloudTableClient _client;
+        private Timer _saveTimer;
 
         private readonly CloudTable _migrationTables;
         private readonly ConcurrentDictionary<Type, ConcurrentList<BaseEntity>> _entitiesToAdd;
@@ -52,17 +53,10 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
         /// </summary>
         public async Task SaveChanges()
         {
-            var changedTypes = new List<Type>();
             if (Interlocked.CompareExchange(ref _saveInProgress, 1, 0) == 1)
             {
                 try
                 {
-                    changedTypes =
-                        _entitiesToAdd.Keys.Concat(_entitiesToUpdate.Keys)
-                            .Concat(_entitiesToRemove.Keys)
-                            .Distinct()
-                            .ToList();
-
                     foreach (var remove in _entitiesToRemove.ToList())
                     {
                         foreach (var removeItem in remove.Value.ToList())
@@ -258,8 +252,13 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
             return d;
         }
 
-        public void Track(ObjectRepositoryBase objectRepository)
+        public void Track(ObjectRepositoryBase objectRepository, bool isReadonly)
         {
+            if (!isReadonly)
+            {
+                _saveTimer = new Timer(_ => SaveChanges(), null, 0, 5000);
+            }
+
             objectRepository.ModelChanged += (change) =>
             {
                 switch (change.ChangeType)
@@ -277,5 +276,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
             };
 
         }
+
+        public void Dispose() => _saveTimer?.Dispose();
     }
 }

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -14,9 +13,10 @@ namespace OutCode.EscapeTeams.ObjectRepository
     {
         private readonly ILogger _logger;
         private readonly List<Task> _tasks = new List<Task>();
-        protected readonly ConcurrentDictionary<Type, ITableDictionary<ModelBase>> _sets = new ConcurrentDictionary<Type, ITableDictionary<ModelBase>>();
+        private bool _typeAdded;
 
-        private Timer _saveTimer;
+        protected readonly ConcurrentDictionary<Type, ITableDictionary<ModelBase>> _sets = new ConcurrentDictionary<Type, ITableDictionary<ModelBase>>();
+        private bool _isReadOnly;
 
         public event Action<ModelChangedEventArgs> ModelChanged = delegate {};
 
@@ -25,16 +25,32 @@ namespace OutCode.EscapeTeams.ObjectRepository
             Storage = storage;
             _logger = logger;
             Storage.OnError += RaiseOnException;
-            Storage.Track(this);
         }
 
         protected IStorage Storage { get; }
 
         public bool IsLoading => _tasks?.Any(s => !s.IsCompleted) ?? true;
-        
+
+        public bool IsReadOnly
+        {
+            get => _isReadOnly;
+            protected set
+            {
+                if (_typeAdded)
+                    throw new NotSupportedException("Is readonly should be set before adding types!");
+                _isReadOnly = value;
+            }
+        }
+
         public void AddType<TStore,TModel>(Func<TStore,TModel> converter)
             where TModel:ModelBase
         {
+            if (!_typeAdded)
+            {
+                _typeAdded = true;
+                Storage.Track(this, IsReadOnly);
+            }
+
             _tasks.Add(AddTypeAndLoad(()=>Storage.GetAll<TStore>(), converter));
         }
 
@@ -65,8 +81,6 @@ namespace OutCode.EscapeTeams.ObjectRepository
                 throw new InvalidOperationException("No AddType was called before Initialize!");
             
             Task.WaitAll(_tasks.ToArray());
-
-            _saveTimer = new Timer(_ => SaveChanges(), null, 0, 5000);
 
             Parallel.ForEach(_sets.Keys, key =>
             {
@@ -173,7 +187,7 @@ namespace OutCode.EscapeTeams.ObjectRepository
             throw new NotSupportedException("Failed to get ObjectRepository's set for type " + t?.FullName);
         }
 
-        private async void SaveChanges()
+        public async void SaveChanges()
         {
             if (IsLoading)
             {
@@ -188,11 +202,6 @@ namespace OutCode.EscapeTeams.ObjectRepository
             {
                 RaiseOnException(ex);
             }
-        }
-
-        ~ObjectRepositoryBase()
-        {
-            _saveTimer.Dispose();
         }
     }
 }

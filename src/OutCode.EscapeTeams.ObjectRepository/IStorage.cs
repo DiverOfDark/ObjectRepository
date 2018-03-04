@@ -8,7 +8,7 @@ namespace OutCode.EscapeTeams.ObjectRepository
     {
         Task SaveChanges();
         Task<IEnumerable<T>> GetAll<T>();
-        void Track(ObjectRepositoryBase objectRepository);
+        void Track(ObjectRepositoryBase objectRepository, bool isReadonly);
         event Action<Exception> OnError;
     }
 }
