@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace OutCode.EscapeTeams.ObjectRepository.Tests
 {
-    public class TestStorage : IStorage
+    public class TestStorage : List<object>, IStorage
     {
         public Task SaveChanges() => Task.CompletedTask;
 
-        public Task<IEnumerable<T>> GetAll<T>() => Task.FromResult(Enumerable.Empty<T>());
+        public Task<IEnumerable<T>> GetAll<T>() => Task.FromResult(this.OfType<T>());
 
         public void Track(ObjectRepositoryBase objectRepository, bool isReadonly)
         {

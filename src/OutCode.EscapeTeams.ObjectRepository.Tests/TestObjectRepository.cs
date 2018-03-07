@@ -6,9 +6,11 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
 {
     public class TestObjectRepository : ObjectRepositoryBase
     {
-        public TestObjectRepository() : base(new TestStorage(), NullLogger.Instance)
+        public TestObjectRepository(TestStorage storage) : base(storage, NullLogger.Instance)
         {
-            AddType((object x) => new TestModel());
+            AddType((TestModel x) => x);
+            AddType((ParentModel x) => x);
+            AddType((ChildModel x) => x);
             Initialize();
         }
 

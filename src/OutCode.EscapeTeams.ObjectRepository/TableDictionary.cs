@@ -24,7 +24,13 @@ namespace OutCode.EscapeTeams.ObjectRepository
             where TForeign : ModelBase
         {
             var type = typeof(TForeign);
-            var guidMember = ((MemberExpression)((UnaryExpression)foreignKey.Body).Operand).Member.Name;
+
+            if (!(foreignKey.Body is MemberExpression foreignKeyBody))
+            {
+                foreignKeyBody = (MemberExpression) ((UnaryExpression) foreignKey.Body).Operand;
+            }
+
+            var guidMember = foreignKeyBody.Member.Name;
 
             ConcurrentDictionary<string, Tuple<Delegate, object>> t;
 
