@@ -14,9 +14,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Nuke.Common" Version="$(NukeVersion)" />
+    <PackageReference Include="Nuke.Common" Version="0.8.0" />
     <PackageReference Include="Nuke.CodeGeneration" Version="$(NukeVersion)" Condition="'$(NukeCodeGeneration)' != 'False'" />
-    <PackageReference Include="GitVersion.CommandLine" Version="4.0.0-beta0012" />
+    <PackageReference Include="GitVersion.CommandLine" Version="4.0.0-beta0014" />
   </ItemGroup>
 
   <ItemGroup>

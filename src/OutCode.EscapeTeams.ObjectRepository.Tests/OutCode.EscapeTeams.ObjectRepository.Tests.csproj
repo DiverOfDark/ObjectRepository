@@ -9,13 +9,20 @@
   <ItemGroup>
     <PackageReference Include="Appveyor.TestLogger" Version="2.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="1.2.0" />
-    <PackageReference Include="MSTest.TestFramework" Version="1.2.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.3.2" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.3.2" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OutCode.EscapeTeams.ObjectRepository.LiteDB\OutCode.EscapeTeams.ObjectRepository.LiteDB.csproj" />
     <ProjectReference Include="..\OutCode.EscapeTeams.ObjectRepository\OutCode.EscapeTeams.ObjectRepository.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="LiteDB, Version=4.1.4.0, Culture=neutral, PublicKeyToken=4ee40123013c9f27">
+      <HintPath>..\..\..\..\..\.nuget\packages\litedb\4.1.4\lib\netstandard2.0\LiteDB.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

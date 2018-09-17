@@ -6,13 +6,13 @@
     <Authors>Kirill Orlov</Authors>
     <Company>EscapeTeams</Company>
     <Product>ObjectRepository AzureTable-backed storage provider</Product>
-    <Description>Azure Tables backed storage provider for Escapeteams ObjectRepository</Description>
+    <Description>Azure Tables backed storage provider for EscapeTeams ObjectRepository</Description>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="WindowsAzure.Storage" Version="8.7.0" />
+    <PackageReference Include="WindowsAzure.Storage" Version="9.3.2" />
   </ItemGroup>
 
   <ItemGroup>
