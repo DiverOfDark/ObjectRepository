@@ -41,9 +41,11 @@ class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            DotNetBuild(s => DefaultDotNetBuild.SetAssemblyVersion(GitVersion.GetNormalizedAssemblyVersion())
-                .SetFileVersion(GitVersion.GetNormalizedFileVersion())
-                .SetInformationalVersion(GitVersion.InformationalVersion));
+            DotNetBuild(s => DefaultDotNetBuild
+//                .SetAssemblyVersion(GitVersion.GetNormalizedAssemblyVersion())
+//                .SetFileVersion(GitVersion.GetNormalizedFileVersion())
+//                .SetInformationalVersion(GitVersion.InformationalVersion)
+            );
         });
 
     Target Test => _ => _
