@@ -9,9 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OutCode.EscapeTeams.ObjectR
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OutCode.EscapeTeams.ObjectRepository.Tests", "OutCode.EscapeTeams.ObjectRepository.Tests\OutCode.EscapeTeams.ObjectRepository.Tests.csproj", "{C4EB5579-3BFB-4770-86FA-A4031B4816AE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = ".build", "build\.build.csproj", "{01AA66A6-0A20-4479-B774-FB50C231D99A}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OutCode.EscapeTeams.ObjectRepository.LiteDB", "OutCode.EscapeTeams.ObjectRepository.LiteDB\OutCode.EscapeTeams.ObjectRepository.LiteDB.csproj", "{398FF6EF-D0D9-4C38-A542-73A93952FF00}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "..\build\_build.csproj", "{0AADB1E7-813C-4016-BF30-65380EC26CE2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,6 +19,8 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0AADB1E7-813C-4016-BF30-65380EC26CE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0AADB1E7-813C-4016-BF30-65380EC26CE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1611AEF8-0CD6-49C3-B545-18A78185EADC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1611AEF8-0CD6-49C3-B545-18A78185EADC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1611AEF8-0CD6-49C3-B545-18A78185EADC}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -31,10 +33,6 @@ Global
 		{C4EB5579-3BFB-4770-86FA-A4031B4816AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4EB5579-3BFB-4770-86FA-A4031B4816AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4EB5579-3BFB-4770-86FA-A4031B4816AE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{01AA66A6-0A20-4479-B774-FB50C231D99A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{01AA66A6-0A20-4479-B774-FB50C231D99A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{01AA66A6-0A20-4479-B774-FB50C231D99A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{01AA66A6-0A20-4479-B774-FB50C231D99A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{398FF6EF-D0D9-4C38-A542-73A93952FF00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{398FF6EF-D0D9-4C38-A542-73A93952FF00}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{398FF6EF-D0D9-4C38-A542-73A93952FF00}.Release|Any CPU.ActiveCfg = Release|Any CPU

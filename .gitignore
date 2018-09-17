@@ -1,1 +1,7 @@
 /output/
+.vs/
+bin/
+obj/
+*.user
+.tmp/
+.idea

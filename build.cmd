@@ -1,1 +1,1 @@
-@powershell -ExecutionPolicy ByPass -File ./src/build.ps1 -target publish -configuration release
+@powershell -ExecutionPolicy ByPass -File ./src/build.ps1 publish -configuration release
