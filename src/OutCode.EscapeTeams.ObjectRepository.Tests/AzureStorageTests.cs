@@ -9,7 +9,7 @@ using OutCode.EscapeTeams.ObjectRepository.AzureTableStorage;
 
 namespace OutCode.EscapeTeams.ObjectRepository.Tests
 {
-    [TestClass]
+    [TestClass, Ignore]
     public class AzureStorageTests : ProviderTestBase
     {
         protected override ObjectRepositoryBase CreateRepository()
