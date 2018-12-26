@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OutCode.EscapeTeams.ObjectRepository.AzureTableStorage\OutCode.EscapeTeams.ObjectRepository.AzureTableStorage.csproj" />
     <ProjectReference Include="..\OutCode.EscapeTeams.ObjectRepository.LiteDB\OutCode.EscapeTeams.ObjectRepository.LiteDB.csproj" />
     <ProjectReference Include="..\OutCode.EscapeTeams.ObjectRepository\OutCode.EscapeTeams.ObjectRepository.csproj" />
   </ItemGroup>

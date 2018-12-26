@@ -77,9 +77,9 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
                         }
                     }
 
-                    await ProcessAction(_entitiesToAdd, (batch, entity) => batch.Insert(entity));
-                    await ProcessAction(_entitiesToUpdate, (batch, entity) => batch.Replace(entity));
-                    await ProcessAction(_entitiesToRemove, (batch, entity) => batch.Delete(entity));
+                    await ProcessAction(_entitiesToAdd, (batch, entity) => batch.Insert(new DateTimeAwareTableEntityAdapter<BaseEntity>(entity)));
+                    await ProcessAction(_entitiesToUpdate, (batch, entity) => batch.Replace(new DateTimeAwareTableEntityAdapter<BaseEntity>(entity)));
+                    await ProcessAction(_entitiesToRemove, (batch, entity) => batch.Delete(new DateTimeAwareTableEntityAdapter<BaseEntity>(entity)));
                 }
                 finally
                 {
@@ -97,14 +97,14 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
             return (Task<IEnumerable<T>>) task;
         }
 
-        private async Task<IEnumerable<T>> ExecuteQuery<T>() where T:ITableEntity, new()
+        private async Task<IEnumerable<T>> ExecuteQuery<T>() where T:BaseEntity, new()
         {
             var tableReference = _client.GetTableReference(typeof(T).Name);
             await tableReference.CreateIfNotExistsAsync();
 
-            var result = await tableReference.ExecuteQueryAsync(new TableQuery<T>());
+            var result = await tableReference.ExecuteQueryAsync(new TableQuery<DateTimeAwareTableEntityAdapter<T>>());
 
-            return result.ToList();
+            return result.Select(v=>v.OriginalEntity).ToList();
         }
  
         public async Task ApplyMigration(AzureTableMigration migration)
@@ -137,7 +137,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
         /// Performs an action on the group of objects.
         /// </summary>
         private async Task ProcessAction<T>(ConcurrentDictionary<Type, ConcurrentList<T>> lookup, Action<TableBatchOperation, T> entityAction)
-            where T: ITableEntity
+            where T: BaseEntity
         {
             const int BATCH_SIZE = 100; // enforced by Azure Table Storage
 
@@ -160,7 +160,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
         /// Processes a single action on the objects.
         /// </summary>
         private async Task ProcessObjectList<T>(ConcurrentList<T> concurrentQueue, Type type, IEnumerable<T> list, Action<TableBatchOperation, T> entityAction)
-            where T: ITableEntity
+            where T: BaseEntity
         {
             var tableName = type.Name;
             var tableRef = _client.GetTableReference(tableName);
@@ -190,7 +190,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
 
                         var data = item.GetPropertiesAsRawData();
 
-                        exs.Add(new Exception($"Failed to update {item.ETag}/{item.PartitionKey}\r\n{data}", exception));
+                        exs.Add(new Exception($"Failed to update {item.Id}\r\n{data}", exception));
                     }
                 }
 
@@ -264,7 +264,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
                 switch (change.ChangeType)
                 {
                     case ChangeType.Update:
-                        AddEntityToLookup(((BaseEntity) change.Entity).Touch(), _entitiesToUpdate);
+                        AddEntityToLookup((BaseEntity) change.Entity, _entitiesToUpdate);
                         break;
                     case ChangeType.Add:
                         AddEntityToLookup((BaseEntity)change.Entity, _entitiesToAdd);
