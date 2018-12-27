@@ -27,8 +27,8 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             var id = Guid.NewGuid();
             var testStorage = new TestStorage
             {
-                new ParentModel {TestId = id},
-                new ChildModel {ParentId = id}
+                new ParentEntity(id),
+                new ChildEntity(Guid.NewGuid()) {ParentId = id}
             };
 
             var instance = new TestObjectRepository(testStorage);
@@ -54,8 +54,8 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             var id = Guid.NewGuid();
             var testStorage = new TestStorage
             {
-                new ParentModel {TestId = id},
-                new ChildModel {ParentId = id}
+                new ParentEntity(id),
+                new ChildEntity(Guid.NewGuid()) {ParentId = id}
             };
 
             var instance = new TestObjectRepository(testStorage);
@@ -80,8 +80,8 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             var id = Guid.NewGuid();
             var testStorage = new TestStorage
             {
-                new ParentModel {TestId = id},
-                new ChildModel {ParentId = id}
+                new ParentEntity(id),
+                new ChildEntity(Guid.NewGuid()) {ParentId = id}
             };
 
             var instance = new TestObjectRepository(testStorage);

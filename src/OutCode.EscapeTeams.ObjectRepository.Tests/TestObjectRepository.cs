@@ -8,9 +8,8 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
     {
         public TestObjectRepository(IStorage storage) : base(storage, NullLogger.Instance)
         {
-            AddType((TestModel x) => x);
-            AddType((ParentModel x) => x);
-            AddType((ChildModel x) => x);
+            AddType((ParentEntity x) => new ParentModel(x));
+            AddType((ChildEntity x) => new ChildModel(x));
             Initialize();
         }
 

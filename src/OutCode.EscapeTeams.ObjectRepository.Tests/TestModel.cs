@@ -3,39 +3,50 @@ using System.Collections.Generic;
 
 namespace OutCode.EscapeTeams.ObjectRepository.Tests
 {
-    public class TestEntity : BaseEntity
+    public class ParentEntity : BaseEntity
     {
+        public ParentEntity(Guid id) => Id = id;
     }
     
-    public class TestModel : ModelBase
+    public class ChildEntity : BaseEntity
     {
-        public Guid TestId { get; set; } = Guid.NewGuid();
-
-        protected override BaseEntity Entity { get; } = new TestEntity();
+        public ChildEntity(Guid id) => Id = id;
+        public Guid ParentId { get; set; }
     }
-
+    
     public class ParentModel : ModelBase
     {
-        public Guid? NullableId => null;
+        public ParentModel(ParentEntity entity)
+        {
+            Entity = entity;
+        }
 
-        public Guid TestId { get; set; } = Guid.NewGuid();
+        public Guid? NullableId => null;
 
         public IEnumerable<ChildModel> Children => Multiple<ChildModel>(x => x.ParentId);
         public IEnumerable<ChildModel> OptionalChildren => Multiple<ChildModel>(x => x.NullableTestId);
 
-        protected override BaseEntity Entity { get; } = new TestEntity();
+        protected override BaseEntity Entity { get; }
     }
 
     public class ChildModel : ModelBase
     {
-        public Guid TestId { get; set; } = Guid.NewGuid();
+        public ChildModel(ChildEntity entity)
+        {
+            Entity = entity;
+        }
+
         public Guid? NullableTestId => null;
 
-        public Guid ParentId { get; set; }
+        public Guid ParentId
+        {
+            get => ((ChildEntity) Entity).ParentId;
+            set => UpdateProperty(() => ((ChildEntity) Entity).ParentId, value);
+        }
 
         public ParentModel Parent => Single<ParentModel>(ParentId);
         public ParentModel ParentOptional => Single<ParentModel>(NullableTestId);
 
-        protected override BaseEntity Entity { get; } = new TestEntity();
+        protected override BaseEntity Entity { get; }
     }
 }
