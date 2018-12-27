@@ -5,7 +5,7 @@ using Microsoft.WindowsAzure.Storage.Table;
 
 namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
 {
-    public class DateTimeAwareTableEntityAdapter<T> : TableEntityAdapter<T> where T:BaseEntity
+    internal class DateTimeAwareTableEntityAdapter<T> : TableEntityAdapter<T> where T:BaseEntity
     {
         public DateTimeAwareTableEntityAdapter()
         {
@@ -38,5 +38,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
             result.Remove(nameof(BaseEntity.Id));
             return result;
         }
+
+        public bool InconsistentPartitionKey => PartitionKey != OriginalEntity.GetType().Name;
     }
 }
