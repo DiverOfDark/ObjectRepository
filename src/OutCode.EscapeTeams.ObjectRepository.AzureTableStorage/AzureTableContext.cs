@@ -22,6 +22,9 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
         private readonly ConcurrentDictionary<Type, ConcurrentList<BaseEntity>> _entitiesToAdd;
         private readonly ConcurrentDictionary<Type, ConcurrentList<BaseEntity>> _entitiesToRemove;
         private readonly ConcurrentDictionary<Type, ConcurrentList<BaseEntity>> _entitiesToUpdate;
+
+        private readonly ConcurrentDictionary<BaseEntity, TableEntity> _adapters;
+        
         private int _saveInProgress;
 
         public AzureTableContext(CloudTableClient client)
@@ -32,6 +35,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
             _entitiesToAdd = new ConcurrentDictionary<Type,    ConcurrentList<BaseEntity>>();
             _entitiesToRemove = new ConcurrentDictionary<Type, ConcurrentList<BaseEntity>>();
             _entitiesToUpdate = new ConcurrentDictionary<Type, ConcurrentList<BaseEntity>>();
+            _adapters = new ConcurrentDictionary<BaseEntity, TableEntity>();
         }
 
         public event Action<Exception> OnError = delegate {};
@@ -77,15 +81,20 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
                         }
                     }
 
-                    await ProcessAction(_entitiesToAdd, (batch, entity) => batch.Insert(new DateTimeAwareTableEntityAdapter<BaseEntity>(entity)));
-                    await ProcessAction(_entitiesToUpdate, (batch, entity) => batch.Replace(new DateTimeAwareTableEntityAdapter<BaseEntity>(entity)));
-                    await ProcessAction(_entitiesToRemove, (batch, entity) => batch.Delete(new DateTimeAwareTableEntityAdapter<BaseEntity>(entity)));
+                    await ProcessAction(_entitiesToAdd, (batch, entity) => batch.Insert(CreateAdapter(entity)));
+                    await ProcessAction(_entitiesToUpdate, (batch, entity) => batch.Replace(CreateAdapter(entity)));
+                    await ProcessAction(_entitiesToRemove, (batch, entity) => batch.Delete(CreateAdapter(entity)));
                 }
                 finally
                 {
                     _saveInProgress = 0;
                 }
             }
+        }
+
+        private ITableEntity CreateAdapter(BaseEntity entity)
+        {
+            return _adapters.GetOrAdd(entity, be => new DateTimeAwareTableEntityAdapter<BaseEntity>(be));
         }
 
         /// <summary>
@@ -104,6 +113,11 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
 
             var result = await tableReference.ExecuteQueryAsync(new TableQuery<DateTimeAwareTableEntityAdapter<T>>());
 
+            foreach (var item in result)
+            {
+                _adapters.TryAdd(item.OriginalEntity, item);
+            }
+            
             return result.Select(v=>v.OriginalEntity).ToList();
         }
  
@@ -136,8 +150,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
         /// <summary>
         /// Performs an action on the group of objects.
         /// </summary>
-        private async Task ProcessAction<T>(ConcurrentDictionary<Type, ConcurrentList<T>> lookup, Action<TableBatchOperation, T> entityAction)
-            where T: BaseEntity
+        private async Task ProcessAction(ConcurrentDictionary<Type, ConcurrentList<BaseEntity>> lookup, Action<TableBatchOperation, BaseEntity> entityAction)
         {
             const int BATCH_SIZE = 100; // enforced by Azure Table Storage
 
@@ -148,6 +161,14 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
                     try
                     {
                         await ProcessObjectList(lookup[type], type, batch, entityAction);
+
+                        if (lookup == _entitiesToRemove)
+                        {
+                            foreach (var b in batch)
+                            {
+                                _entitiesToRemove[type].Remove(b);
+                            }
+                        }
                     }
                     catch (Exception ex)
                     {
