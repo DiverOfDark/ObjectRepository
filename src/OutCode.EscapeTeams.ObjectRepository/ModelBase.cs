@@ -8,17 +8,17 @@ using System.Runtime.CompilerServices;
 
 namespace OutCode.EscapeTeams.ObjectRepository 
 {
-    public abstract class ModelBase 
+    public abstract class ModelBase
     {
         /// <summary>
         /// Primary key of this object.
         /// </summary>
-        public abstract Guid Id { get; }
+        public Guid Id => Entity.Id;
 
         /// <summary>
         /// Underlying database item associated with the model.
         /// </summary>
-        protected internal abstract object Entity { get; }
+        protected internal abstract BaseEntity Entity { get; }
 
         protected ObjectRepositoryBase ObjectRepository { get; private set; }
 

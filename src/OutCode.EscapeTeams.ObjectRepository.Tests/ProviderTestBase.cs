@@ -100,8 +100,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
                 _entity = new TestEntity {Id = Guid.NewGuid()};
             }
 
-            public override Guid Id => _entity.Id;
-
             public string Property
             {
                 get => _entity.Property;
@@ -114,7 +112,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
                 set => UpdateProperty(() => _entity.Id, value);
             }
 
-            protected override object Entity => _entity;
+            protected override BaseEntity Entity => _entity;
         }
 
         public class ParentModel : ModelBase
@@ -131,8 +129,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
                 _entity = new ParentEntity {Id = Guid.NewGuid()};
             }
 
-            public override Guid Id => _entity.Id;
-
             public Guid? NullableId
             {
                 get => _entity.NullableId;
@@ -148,7 +144,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             public IEnumerable<ChildModel> Children => Multiple<ChildModel>(x => x.ParentId);
             public IEnumerable<ChildModel> OptionalChildren => Multiple<ChildModel>(x => x.NullableTestId);
 
-            protected override object Entity => _entity;
+            protected override BaseEntity Entity => _entity;
         }
 
         public class ChildModel : ModelBase
@@ -168,8 +164,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
                     _entity.ParentId = parent.Id;
                 }
             }
-
-            public override Guid Id => _entity.Id;
 
             public Guid TestId
             {
@@ -192,7 +186,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             public ParentModel Parent => Single<ParentModel>(ParentId);
             public ParentModel ParentOptional => Single<ParentModel>(NullableTestId);
 
-            protected override object Entity => _entity;
+            protected override BaseEntity Entity => _entity;
         }
         
         [TestMethod]

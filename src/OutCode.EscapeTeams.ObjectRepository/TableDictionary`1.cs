@@ -11,12 +11,12 @@ namespace OutCode.EscapeTeams.ObjectRepository
     {
         private readonly ObjectRepositoryBase _owner;
         private readonly ConcurrentDictionary<string, Func<T, object>> _columnsForIndex;
-        private readonly ConcurrentDictionary<object, T> _dictionary;
+        private readonly ConcurrentDictionary<BaseEntity, T> _dictionary;
 
         public TableDictionary(ObjectRepositoryBase owner, IEnumerable<T> source):base(owner)
         {
             _owner = owner;
-            _dictionary = new ConcurrentDictionary<object,T>(source.Select(v => new KeyValuePair<object, T>(v.Entity, v)));
+            _dictionary = new ConcurrentDictionary<BaseEntity,T>(source.Select(v => new KeyValuePair<BaseEntity, T>(v.Entity, v)));
 
             _columnsForIndex = new ConcurrentDictionary<string, Func<T, object>>();
             AddIndex(x => x.Id);
