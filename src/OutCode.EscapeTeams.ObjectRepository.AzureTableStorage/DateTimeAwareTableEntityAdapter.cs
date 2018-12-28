@@ -21,13 +21,15 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
         public override void ReadEntity(IDictionary<string, EntityProperty> properties,
             OperationContext operationContext)
         {
-            base.ReadEntity(properties, operationContext);
+            OriginalEntity = ConvertBack<T>(properties,
+                new EntityPropertyConverterOptions {PropertyNameDelimiter = "."}, operationContext);
             OriginalEntity.Id = Guid.Parse(RowKey);
         }
         
         public override IDictionary<string, EntityProperty> WriteEntity(OperationContext operationContext)
         {
-            var result = base.WriteEntity(operationContext);
+            var result = Flatten(OriginalEntity, new EntityPropertyConverterOptions() {PropertyNameDelimiter = "."},
+                operationContext);
 
             foreach (var item in result)
             {
