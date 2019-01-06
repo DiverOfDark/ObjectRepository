@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OutCode.EscapeTeams.ObjectRepository.AzureTableStorage\OutCode.EscapeTeams.ObjectRepository.AzureTableStorage.csproj" />
+    <ProjectReference Include="..\OutCode.EscapeTeams.ObjectRepository.File\OutCode.EscapeTeams.ObjectRepository.File.csproj" />
     <ProjectReference Include="..\OutCode.EscapeTeams.ObjectRepository.LiteDB\OutCode.EscapeTeams.ObjectRepository.LiteDB.csproj" />
     <ProjectReference Include="..\OutCode.EscapeTeams.ObjectRepository\OutCode.EscapeTeams.ObjectRepository.csproj" />
   </ItemGroup>

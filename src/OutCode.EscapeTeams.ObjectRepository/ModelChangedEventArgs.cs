@@ -37,7 +37,7 @@
         }
         
         public ModelBase Source { get; private set; }
-        public object Entity { get; private set; }
+        public BaseEntity Entity { get; private set; }
         public ChangeType ChangeType { get; private set; }
         public string PropertyName { get; private set; }
         public object OldValue { get; private set; }

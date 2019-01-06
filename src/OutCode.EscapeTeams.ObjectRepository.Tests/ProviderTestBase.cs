@@ -21,6 +21,30 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
         protected abstract ObjectRepositoryBase CreateRepository();
 
         protected abstract IStorage GetStorage(ObjectRepositoryBase objectRepository);
+
+        [TestMethod]
+        public void TestThatAfterRestartWorks()
+        {
+            var objectRepo = CreateRepository();
+
+            objectRepo.SaveChanges();
+            
+            var storage = GetStorage(objectRepo);
+
+            storage.SaveChanges().GetAwaiter().GetResult();
+
+            objectRepo = CreateRepository();
+            
+            Assert.AreEqual(objectRepo.Set<TestModel>().Count(), 1);
+            Assert.AreEqual(objectRepo.Set<ParentModel>().Count(), 1);
+            Assert.AreEqual(objectRepo.Set<ChildModel>().Count(), 1);
+
+            Assert.AreEqual(objectRepo.Set<TestModel>().First().Id, _testModel.TestId);
+            Assert.AreEqual(objectRepo.Set<ParentModel>().First().Id, _parentModel.TestId);
+            Assert.AreEqual(objectRepo.Set<ChildModel>().First().Id, _childModel.TestId);
+            Assert.AreEqual(objectRepo.Set<ChildModel>().First().ParentId, _parentModel.Id);
+
+        }
         
         [TestMethod]
         public void TestThatAddWorks()
