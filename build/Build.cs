@@ -1,4 +1,5 @@
-﻿using Nuke.Common;
+﻿using System;
+using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitVersion;
@@ -63,5 +64,11 @@ class Build : NukeBuild
         .Executes(() =>
         {
             DotNetPack(s => DefaultDotNetPack.SetAuthors("Kirill Orlov").SetNoRestore(true));
+
+            var apikey = Environment.GetEnvironmentVariable("NUGET");
+            if (!String.IsNullOrWhiteSpace(apikey))
+            {
+                DotNetNuGetPush(s => s.SetApiKey(apikey));
+            }
         });
 }
