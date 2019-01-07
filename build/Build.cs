@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Linq;
 using Nuke.Common;
 using Nuke.Common.IO;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitVersion;
+using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
@@ -68,7 +70,9 @@ class Build : NukeBuild
             var apikey = Environment.GetEnvironmentVariable("NUGET");
             if (!String.IsNullOrWhiteSpace(apikey))
             {
-                DotNetNuGetPush(s => s.SetApiKey(apikey));
+                GlobFiles(OutputDirectory, "*.nupkg").NotEmpty()
+                    .Where(x => !x.EndsWith("symbols.nupkg"))
+                    .ForEach(x => DotNetNuGetPush(s => s.SetApiKey(apikey).SetTargetPath(x)));fpack
             }
         });
 }
