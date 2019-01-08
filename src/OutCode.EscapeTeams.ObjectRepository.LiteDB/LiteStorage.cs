@@ -58,7 +58,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.LiteDB
                         }
                     }
 
-                    ProcessAction(_entitiesToAdd, (x, y) => y.Insert(_mapper.ToDocument(x)));
+                    ProcessAction(_entitiesToAdd, (x, y) => y.Upsert(_mapper.ToDocument(x)));
                     ProcessAction(_entitiesToUpdate, (x, y) => y.Update(_mapper.ToDocument(x)));
                     ProcessAction(_entitiesToRemove, (x, y) => y.Delete(_mapper.ToDocument(x)));
                 }
