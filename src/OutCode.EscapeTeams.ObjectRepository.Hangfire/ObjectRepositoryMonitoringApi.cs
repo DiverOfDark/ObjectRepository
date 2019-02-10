@@ -247,7 +247,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
         public StatisticsDto GetStatistics()
         {
-            var stateIds = _storage.ObjectRepository.Set<StateModel>().ToDictionary(v => v.Name, v => v.Id);
+            var stateIds = _storage.ObjectRepository.Set<StateModel>().ToList();
             var jobs = _storage.ObjectRepository.Set<JobModel>();
 
             Func<string, int> count = name =>
@@ -260,10 +260,10 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
             
             var stats = new StatisticsDto
             {
-                Enqueued = jobs.Count(v=>v.StateId == stateIds["Enqueued"]),
-                Failed = jobs.Count(v=>v.StateId == stateIds["Failed"]),
-                Processing = jobs.Count(v=>v.StateId == stateIds["Processing"]),
-                Scheduled = jobs.Count(v=>v.StateId == stateIds["Scheduled"]),
+                Enqueued = jobs.Count(v=>stateIds.Where(s=>s.Name == "Enqueued").Any(s=>s.Id == v.StateId)),
+                Failed = jobs.Count(v=>stateIds.Where(s=>s.Name == "Failed").Any(s=>s.Id == v.StateId)),
+                Processing = jobs.Count(v=>stateIds.Where(s=>s.Name == "Processing").Any(s=>s.Id == v.StateId)),
+                Scheduled = jobs.Count(v=>stateIds.Where(s=>s.Name == "Scheduled").Any(s=>s.Id == v.StateId)),
                 Servers = _storage.ObjectRepository.Set<ServerModel>().Count(),
                 Succeeded = count("stats:succeeded"),
                 Deleted = count("stats:deleted"),
