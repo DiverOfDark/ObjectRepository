@@ -106,7 +106,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
         public JobList<FailedJobDto> FailedJobs(int @from, int count)
         {
-            var states = _repository.Set<StateModel>().ToDictionary(v => v.Id, v => v);
             return GetJobs(
                 @from,
                 count,
@@ -114,7 +113,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
                 (sqlJob, job, stateData) => new FailedJobDto
                 {
                     Job = job,
-                    Reason = states[sqlJob.StateId].Reason,
+                    Reason = sqlJob.State.Reason,
                     ExceptionDetails = stateData["ExceptionDetails"],
                     ExceptionMessage = stateData["ExceptionMessage"],
                     ExceptionType = stateData["ExceptionType"],

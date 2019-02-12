@@ -1,24 +1,31 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Hangfire.Common;
 using Hangfire.Server;
 using Hangfire.Storage;
+using Hangfire.Storage.Monitoring;
 using OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities;
 
 namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 {
     internal class ObjectRepositoryConnection : JobStorageConnection
 	{
-		private class EmptyDisposable : IDisposable
+		private class InProcessLockDisposable : IDisposable
 		{
-			public void Dispose()
+			public static readonly InProcessLockDisposable Instance = new InProcessLockDisposable();
+			
+			private InProcessLockDisposable()
 			{
 			}
+			
+			public void Dispose() => Monitor.Exit(Instance);
 		}
 		
         private readonly ObjectRepositoryStorage _storage;
+        private static readonly ConcurrentList<JobQueueModel> _jobsTakenOut = new ConcurrentList<JobQueueModel>();
 
         public ObjectRepositoryConnection(ObjectRepositoryStorage storage)
         {
@@ -32,42 +39,45 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
 		public override IDisposable AcquireDistributedLock(string resource, TimeSpan timeout)
 		{
-            return new EmptyDisposable();
+			Monitor.Enter(InProcessLockDisposable.Instance);
+			return InProcessLockDisposable.Instance;
         }
 
 		public override IFetchedJob FetchNextJob(string[] queues, CancellationToken cancellationToken)
 		{
-			if (queues == null || queues.Length == 0) throw new ArgumentNullException(nameof(queues));
-
-			if (queues == null) throw new ArgumentNullException(nameof(queues));
-			if (queues.Length == 0) throw new ArgumentException("Queue array must be non-empty.", nameof(queues));
-
-			JobQueueModel fetchedJob;
-
-			do
+			lock (_jobsTakenOut)
 			{
-				cancellationToken.ThrowIfCancellationRequested();
+				if (queues == null || queues.Length == 0) throw new ArgumentNullException(nameof(queues));
 
-				fetchedJob = _storage.ObjectRepository.Set<JobQueueModel>()
-					.Where(s => s.FetchedAt == null || s.FetchedAt < DateTime.UtcNow)
-					.FirstOrDefault(s => queues.Contains(s.Queue));
+				if (queues == null) throw new ArgumentNullException(nameof(queues));
+				if (queues.Length == 0) throw new ArgumentException("Queue array must be non-empty.", nameof(queues));
 
-				if (fetchedJob != null)
+				JobQueueModel fetchedJob;
+
+				do
 				{
-					fetchedJob.FetchedAt = DateTime.UtcNow;
-				}
-                
-				if (fetchedJob == null)
-				{
-					cancellationToken.WaitHandle.WaitOne(ObjectRepositoryExtensions.QueuePollInterval);
 					cancellationToken.ThrowIfCancellationRequested();
-				}
-			} while (fetchedJob == null);
 
-			return new ObjectRepositoryFetchedJob(_storage.ObjectRepository,
-				fetchedJob.Id,                
-				fetchedJob.JobId,
-				fetchedJob.Queue);
+					fetchedJob = _storage.ObjectRepository.Set<JobQueueModel>()
+						.Where(s => s.FetchedAt == null || s.FetchedAt < DateTime.UtcNow)
+						.Where(v => !_jobsTakenOut.Contains(v))
+						.FirstOrDefault(s => queues.Contains(s.Queue));
+
+					if (fetchedJob != null)
+					{
+						fetchedJob.FetchedAt = DateTime.UtcNow;
+					}
+
+					if (fetchedJob == null)
+					{
+						cancellationToken.WaitHandle.WaitOne(ObjectRepositoryExtensions.QueuePollInterval);
+						cancellationToken.ThrowIfCancellationRequested();
+					}
+				} while (fetchedJob == null);
+
+				return new ObjectRepositoryFetchedJob(_jobsTakenOut, _storage.ObjectRepository,
+					fetchedJob);
+			}
 		}
 
 		public override string CreateExpiredJob(
@@ -278,9 +288,10 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 		{
 			return _storage.ObjectRepository.Set<SetModel>()
 				.Where(v => v.Key == key)
+				.Select(s => s.Value)
+				.OrderBy(v => v)
 				.Skip(startingFrom)
 				.Take(endingAt - startingFrom + 1)
-				.Select(s => s.Value)
 				.ToList();
 		}
 
@@ -353,9 +364,10 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 			return _storage.ObjectRepository
 				.Set<ListModel>()
 				.Where(v => v.Key == key)
+				.Select(v => v.Value)
+				.OrderBy(v => v)
 				.Skip(startingFrom)
 				.Take(endingAt - startingFrom + 1)
-				.Select(v => v.Value)
 				.ToList();
 		}
 
@@ -364,7 +376,8 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 			return _storage.ObjectRepository.Set<ListModel>()
 				.Where(v => v.Key == key)
 				.Select(v => v.Value)
+				.OrderBy(v => v)
 				.ToList();
-        }
+		}
 	}
 }

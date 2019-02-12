@@ -43,5 +43,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities
             get => _jobQueue.FetchedAt;
             set => UpdateProperty(() => _jobQueue.FetchedAt, value);
         }
+
+        public JobModel Job => Single<JobModel>(JobId);
     }
 }

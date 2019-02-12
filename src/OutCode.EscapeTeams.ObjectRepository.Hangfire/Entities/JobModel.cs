@@ -6,7 +6,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities
     {
         internal class JobEntity : BaseEntity
         {
-            public Guid StateId { get; set; }
+            public Guid? StateId { get; set; }
             public string InvocationData { get; set; }
             public string Arguments { get; set; }
             public DateTime CreatedAt { get; set; }
@@ -48,7 +48,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities
             set => UpdateProperty(() => _job.CreatedAt, value);
         }
 
-        public Guid StateId
+        public Guid? StateId
         {
             get => _job.StateId;
             set => UpdateProperty(() => _job.StateId, value);

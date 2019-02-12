@@ -76,6 +76,13 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Tests
             RecurringJob.AddOrUpdate("testjob", () => TestMethod(1, "my param"), Cron.Daily);
             RecurringJob.AddOrUpdate("longjob", () => LongTestMethod(1, "my param"), Cron.Daily);
             RecurringJob.AddOrUpdate("failjob", () => FailMethod(2, "fail"), Cron.Daily);
+
+            for (char a = 'a'; a <= 'z'; a++)
+            {
+                var a1 = a;
+                var name = "TestSorting_" + a;
+                RecurringJob.AddOrUpdate(name, () => TestMethod(a1, name), Cron.Yearly);
+            }
             
             app.Run(async (context) => { await context.Response.WriteAsync("Hello World!"); });
         }

@@ -42,16 +42,13 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
         {
             var jobState = AddJobStateImpl(jobId, state);
 
-            if (jobState != null)
+            QueueCommand(() =>
             {
-                QueueCommand(() =>
-                {
-                    var jobIdGuid = Guid.Parse(jobId);
+                var jobIdGuid = Guid.Parse(jobId);
 
-                    _storage.ObjectRepository.Set<JobModel>().First(v => v.Id == jobIdGuid)
-                        .StateId = jobState.Id;
-                });
-            }
+                _storage.ObjectRepository.Set<JobModel>().First(v => v.Id == jobIdGuid)
+                    .StateId = jobState.Id;
+            });
         }
 
         public override void AddJobState(string jobId, IState state)
@@ -64,7 +61,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
             var jobIdGuid = Guid.Parse(jobId);
             var job = _storage.ObjectRepository.Set<JobModel>().First(v => v.Id == jobIdGuid);
 
-            if (job == null || job.State?.Name == state.Name)
+            if (job == null)
                 return null;
             
             var model = new StateModel

@@ -37,12 +37,13 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
         public EnqueuedAndFetchedCountDto GetEnqueuedAndFetchedCount(string queue)
         {
-            return _storage.Set<JobQueueModel>().Aggregate(new EnqueuedAndFetchedCountDto(), (a, b) =>
-            {
-                a.EnqueuedCount += b.FetchedAt == null ? 1 : 0;
-                a.FetchedCount += b.FetchedAt != null ? 1 : 0;
-                return a;
-            });
+            return _storage.Set<JobQueueModel>().Where(v => v.Queue == queue).Aggregate(
+                new EnqueuedAndFetchedCountDto(), (a, b) =>
+                {
+                    a.EnqueuedCount += b.FetchedAt == null ? 1 : 0;
+                    a.FetchedCount += b.FetchedAt != null ? 1 : 0;
+                    return a;
+                });
         }
     }
 }

@@ -42,6 +42,8 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities
             set => UpdateProperty(() => _state.JobId, value);
         }
 
+        public JobModel Job => Single<JobModel>(JobId);
+        
         public string Name
         {
             get => _state.Name;
