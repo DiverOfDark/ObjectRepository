@@ -1,5 +1,4 @@
 using System.Threading;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace OutCode.EscapeTeams.ObjectRepository.Tests

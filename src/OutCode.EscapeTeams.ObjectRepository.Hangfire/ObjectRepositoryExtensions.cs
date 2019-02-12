@@ -11,7 +11,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
         public static void RegisterHangfireScheme(this ObjectRepositoryBase objectRepository)
         {
-            objectRepository.AddType((AggregatedCounterModel.AggregatedCounterEntity x) => new AggregatedCounterModel(x));
             objectRepository.AddType((CounterModel.CounterEntity x) => new CounterModel(x));
             objectRepository.AddType((HashModel.HashEntity x) => new HashModel(x));
             objectRepository.AddType((JobModel.JobEntity x) => new JobModel(x));

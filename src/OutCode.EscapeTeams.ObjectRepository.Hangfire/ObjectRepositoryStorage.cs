@@ -7,17 +7,15 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 {
     public class ObjectRepositoryStorage : JobStorage
     {
+        internal ObjectRepositoryJobQueueMonitoringApi MonitoringApi { get; set; }
         internal ObjectRepositoryBase ObjectRepository { get; }
 
         public ObjectRepositoryStorage(ObjectRepositoryBase objectRepository)
         {
             ObjectRepository = objectRepository;
-            var defaultQueueProviders = new ObjectRepositoryJobQueueProvider(ObjectRepository);
-            QueueProviders = new PersistentJobQueueProviderCollection(defaultQueueProviders);
+            MonitoringApi = new ObjectRepositoryJobQueueMonitoringApi(objectRepository);
         }
 
-        internal PersistentJobQueueProviderCollection QueueProviders { get; }
-        
         public override IMonitoringApi GetMonitoringApi()
         {
             return new ObjectRepositoryMonitoringApi(this);
@@ -31,7 +29,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
         public override IEnumerable<IServerComponent> GetComponents()
         {
             yield return new ExpirationManager(this);
-            yield return new CountersAggregator(this);
         }
     }
 }

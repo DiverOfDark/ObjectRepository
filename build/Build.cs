@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Nuke.Common;
-using Nuke.Common.IO;
 using Nuke.Common.Tools.DotNet;
-using Nuke.Common.Tools.GitVersion;
 using Nuke.Common.Utilities.Collections;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 using static Nuke.Common.IO.FileSystemTasks;

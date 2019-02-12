@@ -59,5 +59,11 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities
             get => _job.ExpireAt;
             set => UpdateProperty(() => _job.ExpireAt, value);
         }
+
+        public StateModel State
+        {
+            get => Single<StateModel>(StateId);
+            set => UpdateProperty(() => _job.StateId, value?.Id);
+        }
     }
 }

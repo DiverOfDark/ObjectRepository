@@ -1,10 +1,8 @@
 using System;
 using System.Threading;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Table;
 using OutCode.EscapeTeams.ObjectRepository.AzureTableStorage;
 
 namespace OutCode.EscapeTeams.ObjectRepository.Tests

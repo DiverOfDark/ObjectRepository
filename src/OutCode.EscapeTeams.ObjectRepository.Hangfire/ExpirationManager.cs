@@ -20,7 +20,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
         public void Execute(CancellationToken cancellationToken)
         {
             Logger.Debug($"Removing outdated records...");
-            _storage.ObjectRepository.Remove<AggregatedCounterModel>(s => s.ExpireAt < DateTime.UtcNow);
             _storage.ObjectRepository.Remove<JobModel>(s => s.ExpireAt < DateTime.UtcNow);
             _storage.ObjectRepository.Remove<ListModel>(s => s.ExpireAt < DateTime.UtcNow);
             _storage.ObjectRepository.Remove<SetModel>(s => s.ExpireAt < DateTime.UtcNow);

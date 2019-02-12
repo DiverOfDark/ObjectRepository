@@ -40,74 +40,97 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
         public override void SetJobState(string jobId, IState state)
         {
-            QueueCommand(() =>
-            {
-                var stateModel = new StateModel
-                {
-                    JobId = Guid.Parse(jobId),
-                    Name = state.Name,
-                    Reason = state.Reason,
-                    CreatedAt = DateTime.UtcNow,
-                    Data = JobHelper.ToJson(state.SerializeData())
-                };
-                _storage.ObjectRepository.Add(
-                    stateModel);
+            var jobState = AddJobStateImpl(jobId, state);
 
-                var jobIdGuid = Guid.Parse(jobId);
-                
-                _storage.ObjectRepository.Set<JobModel>().First(v => v.Id == jobIdGuid)
-                    .StateId = stateModel.Id;
-            });
+            if (jobState != null)
+            {
+                QueueCommand(() =>
+                {
+                    var jobIdGuid = Guid.Parse(jobId);
+
+                    _storage.ObjectRepository.Set<JobModel>().First(v => v.Id == jobIdGuid)
+                        .StateId = jobState.Id;
+                });
+            }
         }
 
         public override void AddJobState(string jobId, IState state)
         {
+            AddJobStateImpl(jobId, state);
+        }
+
+        private StateModel AddJobStateImpl(string jobId, IState state)
+        {
+            var jobIdGuid = Guid.Parse(jobId);
+            var job = _storage.ObjectRepository.Set<JobModel>().First(v => v.Id == jobIdGuid);
+
+            if (job == null || job.State?.Name == state.Name)
+                return null;
+            
+            var model = new StateModel
+            {
+                JobId = job.Id,
+                Name = state.Name,
+                Reason = state.Reason,
+                CreatedAt = DateTime.UtcNow,
+                Data = JobHelper.ToJson(state.SerializeData())
+            };
             QueueCommand(() => _storage.ObjectRepository.Add(
-                new StateModel
-                {
-                    JobId = Guid.Parse(jobId),
-                    Name = state.Name,
-                    Reason = state.Reason,
-                    CreatedAt = DateTime.UtcNow,
-                    Data = JobHelper.ToJson(state.SerializeData())
-                }));
+                model));
+            return model;
         }
 
         public override void AddToQueue(string queue, string jobId)
         {
-            var provider = _storage.QueueProviders.GetProvider(queue);
-            var persistentQueue = provider.GetJobQueue();
-
             var jobGuid = Guid.Parse(jobId);
-            QueueCommand(() => persistentQueue.Enqueue(queue, jobGuid));
+            QueueCommand(() =>
+            {
+                _storage.ObjectRepository.Add(new JobQueueModel
+                {
+                    JobId = jobGuid,
+                    Queue = queue
+                });
+            });
         }
 
         public override void IncrementCounter(string key)
         {
-            QueueCommand(() => _storage.ObjectRepository.Add(new CounterModel(key)
-                {Value = +1})
-            );
+            UpdateCounter(key, +1, null);
         }
 
         public override void IncrementCounter(string key, TimeSpan expireIn)
         {
-            QueueCommand(() => _storage.ObjectRepository.Add(new CounterModel(key)
-                {Value = +1, ExpireAt = DateTime.UtcNow.Add(expireIn)})
-            );
+            UpdateCounter(key, +1, expireIn);
         }
 
         public override void DecrementCounter(string key)
         {
-            QueueCommand(() => _storage.ObjectRepository.Add(new CounterModel(key)
-                {Value = -1})
-            );
+            UpdateCounter(key, -1, null);
         }
 
         public override void DecrementCounter(string key, TimeSpan expireIn)
         {
-            QueueCommand(() => _storage.ObjectRepository.Add(new CounterModel(key)
-                {Value = -1, ExpireAt = DateTime.UtcNow.Add(expireIn)})
-            );
+            UpdateCounter(key, -1, expireIn);
+        }
+
+        private void UpdateCounter(string key, int adjustment, TimeSpan? expireIn)
+        {
+            QueueCommand(() =>
+            {
+                var counter = _storage.ObjectRepository.Set<CounterModel>().FirstOrDefault(v => v.Key == key && v.ExpireAt.HasValue == expireIn.HasValue);
+
+                if (counter == null)
+                {
+                    counter = new CounterModel(key);
+                    _storage.ObjectRepository.Add(counter);
+                }
+                
+                counter.Value += adjustment;
+                if (expireIn.HasValue)
+                {
+                    counter.ExpireAt = DateTime.UtcNow.Add(expireIn.Value);
+                }
+            });
         }
 
         public override void AddToSet(string key, string value)

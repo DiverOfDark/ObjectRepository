@@ -8,7 +8,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities
         {
             public string Key { get; set; }
             public int Value { get; set; }
-            public DateTime ExpireAt { get; set; }
+            public DateTime? ExpireAt { get; set; }
         }
 
         private readonly CounterEntity _counter;
@@ -29,7 +29,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities
 
         protected override BaseEntity Entity => _counter;
 
-        public DateTime ExpireAt
+        public DateTime? ExpireAt
         {
             get => _counter.ExpireAt;
             set => UpdateProperty(() => _counter.ExpireAt, value);

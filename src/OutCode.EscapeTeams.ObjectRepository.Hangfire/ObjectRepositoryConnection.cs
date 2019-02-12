@@ -11,7 +11,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 {
     internal class ObjectRepositoryConnection : JobStorageConnection
 	{
-		internal class EmptyDisposable : IDisposable
+		private class EmptyDisposable : IDisposable
 		{
 			public void Dispose()
 			{
@@ -39,19 +39,35 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 		{
 			if (queues == null || queues.Length == 0) throw new ArgumentNullException(nameof(queues));
 
-			var providers = queues
-				.Select(queue => _storage.QueueProviders.GetProvider(queue))
-				.Distinct()
-				.ToArray();
+			if (queues == null) throw new ArgumentNullException(nameof(queues));
+			if (queues.Length == 0) throw new ArgumentException("Queue array must be non-empty.", nameof(queues));
 
-			if (providers.Length != 1)
+			JobQueueModel fetchedJob;
+
+			do
 			{
-				throw new InvalidOperationException(
-					$"Multiple provider instances registered for queues: {String.Join(", ", queues)}. You should choose only one type of persistent queues per server instance.");
-			}
+				cancellationToken.ThrowIfCancellationRequested();
 
-			var persistentQueue = providers[0].GetJobQueue();
-            return persistentQueue.Dequeue(queues, cancellationToken);            
+				fetchedJob = _storage.ObjectRepository.Set<JobQueueModel>()
+					.Where(s => s.FetchedAt == null || s.FetchedAt < DateTime.UtcNow)
+					.FirstOrDefault(s => queues.Contains(s.Queue));
+
+				if (fetchedJob != null)
+				{
+					fetchedJob.FetchedAt = DateTime.UtcNow;
+				}
+                
+				if (fetchedJob == null)
+				{
+					cancellationToken.WaitHandle.WaitOne(ObjectRepositoryExtensions.QueuePollInterval);
+					cancellationToken.ThrowIfCancellationRequested();
+				}
+			} while (fetchedJob == null);
+
+			return new ObjectRepositoryFetchedJob(_storage.ObjectRepository,
+				fetchedJob.Id,                
+				fetchedJob.JobId,
+				fetchedJob.Queue);
 		}
 
 		public override string CreateExpiredJob(
@@ -283,11 +299,8 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
 		public override long GetCounter(string key)
 		{
-			var c = _storage.ObjectRepository.Set<CounterModel>().Where(v => v.Key == key)
+			return _storage.ObjectRepository.Set<CounterModel>().Where(v => v.Key == key)
 				.Select(v => v.Value).Sum();
-			var ac = _storage.ObjectRepository.Set<AggregatedCounterModel>().Where(v => v.Key == key)
-				.Select(v => v.Value).Sum();
-			return c + ac;
         }
 
 		public override long GetHashCount(string key)

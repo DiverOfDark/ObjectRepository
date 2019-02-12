@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Hangfire.AspNetCore" Version="1.6.22" />
+        <PackageReference Include="Microsoft.AspNetCore.App" />
+        <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\OutCode.EscapeTeams.ObjectRepository.Hangfire\OutCode.EscapeTeams.ObjectRepository.Hangfire.csproj" />
+      <ProjectReference Include="..\OutCode.EscapeTeams.ObjectRepository\OutCode.EscapeTeams.ObjectRepository.csproj" />
+    </ItemGroup>
+
+</Project>

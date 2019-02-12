@@ -12,13 +12,15 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 {
     internal class ObjectRepositoryMonitoringApi : IMonitoringApi
     {
-        private readonly ObjectRepositoryStorage _storage;
+        private readonly ObjectRepositoryBase _repository;
+        private ObjectRepositoryStorage _storage;
 
         public ObjectRepositoryMonitoringApi([NotNull] ObjectRepositoryStorage storage)
         {
-            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
+            _storage = storage;
+            _repository = storage.ObjectRepository;
         }
-
+        
         public long ScheduledCount()
         {
             return GetNumberOfJobsByStateName(ScheduledState.StateName);
@@ -26,7 +28,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
         public long EnqueuedCount(string queue)
         {
-            var queueApi = GetQueueApi(queue);
+            var queueApi = _storage.MonitoringApi;
             var counters = queueApi.GetEnqueuedAndFetchedCount(queue);
 
             return counters.EnqueuedCount ?? 0;
@@ -34,7 +36,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
         public long FetchedCount(string queue)
         {
-            var queueApi = GetQueueApi(queue);
+            var queueApi = _storage.MonitoringApi;
             var counters = queueApi.GetEnqueuedAndFetchedCount(queue);
 
             return counters.FetchedCount ?? 0;
@@ -82,7 +84,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
         public IList<ServerDto> Servers()
         {
-            var servers = _storage.ObjectRepository.Set<ServerModel>().ToList();
+            var servers = _repository.Set<ServerModel>().ToList();
 
             var result = new List<ServerDto>();
 
@@ -104,7 +106,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
         public JobList<FailedJobDto> FailedJobs(int @from, int count)
         {
-            var states = _storage.ObjectRepository.Set<StateModel>().ToDictionary(v => v.Id, v => v);
+            var states = _repository.Set<StateModel>().ToDictionary(v => v.Id, v => v);
             return GetJobs(
                 @from,
                 count,
@@ -154,24 +156,24 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
         public IList<QueueWithTopEnqueuedJobsDto> Queues()
         {
-            var tuples = _storage.QueueProviders
-                .Select(x => x.GetJobQueueMonitoringApi())
-                .SelectMany(x => x.GetQueues(), (monitoring, queue) => new { Monitoring = monitoring, Queue = queue })
-                .OrderBy(x => x.Queue)
+            var monitoring = _storage.MonitoringApi;
+            var queues = monitoring
+                .GetQueues()
+                .OrderBy(x => x)
                 .ToArray();
 
-            var result = new List<QueueWithTopEnqueuedJobsDto>(tuples.Length);
+            var result = new List<QueueWithTopEnqueuedJobsDto>(queues.Length);
 
-            foreach (var tuple in tuples)
+            foreach (var queue in queues)
             {
-                var enqueuedJobIds = tuple.Monitoring.GetEnqueuedJobIds(tuple.Queue, 0, 5);
-                var counters = tuple.Monitoring.GetEnqueuedAndFetchedCount(tuple.Queue);
+                var enqueuedJobIds = monitoring.GetEnqueuedJobIds(queue, 0, 5);
+                var counters = monitoring.GetEnqueuedAndFetchedCount(queue);
 
                 var firstJobs = EnqueuedJobs(enqueuedJobIds);
 
                 result.Add(new QueueWithTopEnqueuedJobsDto
                 {
-                    Name = tuple.Queue,
+                    Name = queue,
                     Length = counters.EnqueuedCount ?? 0,
                     Fetched = counters.FetchedCount,
                     FirstJobs = firstJobs
@@ -183,7 +185,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
         public JobList<EnqueuedJobDto> EnqueuedJobs(string queue, int @from, int perPage)
         {
-            var queueApi = GetQueueApi(queue);
+            var queueApi = _storage.MonitoringApi;
             var enqueuedJobIds = queueApi.GetEnqueuedJobIds(queue, from, perPage);
 
             return EnqueuedJobs(enqueuedJobIds);
@@ -191,10 +193,27 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
         public JobList<FetchedJobDto> FetchedJobs(string queue, int @from, int perPage)
         {
-            var queueApi = GetQueueApi(queue);
+            var queueApi = _storage.MonitoringApi;
             var fetchedJobIds = queueApi.GetFetchedJobIds(queue, from, perPage);
 
-            return FetchedJobs(fetchedJobIds);
+            var jobs = _repository.Set<JobModel>()
+                .Where(v => fetchedJobIds.Contains(v.Id))
+                .ToList();
+
+            var result = new List<KeyValuePair<string, FetchedJobDto>>(jobs.Count);
+
+            foreach (var job in jobs)
+            {
+                result.Add(new KeyValuePair<string, FetchedJobDto>(
+                    job.Id.ToString(),
+                    new FetchedJobDto
+                    {
+                        Job = DeserializeJob(job.InvocationData, job.Arguments),
+                        State = job.State?.Name
+                    }));
+            }
+
+            return new JobList<FetchedJobDto>(result);
         }
 
         public IDictionary<DateTime, long> HourlySucceededJobs()
@@ -211,13 +230,17 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
         {
             if (!Guid.TryParse(jobIdString, out var jobId))
                 return null;
-            var job = _storage.ObjectRepository.Set<JobModel>().FirstOrDefault(v => v.Id == jobId);
+            var job = _repository.Set<JobModel>().FirstOrDefault(v => v.Id == jobId);
             if (job == null) 
                 return null;
 
-            var parameters = _storage.ObjectRepository.Set<JobParameterModel>()
-                .Where(v => v.JobId == jobId).ToDictionary(x => x.Name, x => x.Value);
-            var history = _storage.ObjectRepository.Set<StateModel>()
+            var parameters = _repository.Set<JobParameterModel>()
+                .Where(v => v.JobId == jobId).Aggregate(new Dictionary<string, string>(), (a, b) =>
+                    {
+                        a[b.Name] = b.Value;
+                        return a;
+                    });
+            var history = _repository.Set<StateModel>()
                 .Where(v => v.JobId == jobId)
                 .OrderByDescending(s => s.CreatedAt)
                 .Select(x => new StateHistoryDto
@@ -247,31 +270,25 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
         public StatisticsDto GetStatistics()
         {
-            var stateIds = _storage.ObjectRepository.Set<StateModel>().ToList();
-            var jobs = _storage.ObjectRepository.Set<JobModel>();
+            var jobs = _repository.Set<JobModel>();
 
             Func<string, int> count = name =>
             {
-                var counters = _storage.ObjectRepository.Set<CounterModel>();
-                var agcounters = _storage.ObjectRepository.Set<AggregatedCounterModel>();
-                return counters.Where(v => v.Key == name).Sum(s => s.Value)
-                       + agcounters.Where(v => v.Key == name).Sum(s => s.Value);
+                var counters = _repository.Set<CounterModel>();
+                return counters.Where(v => v.Key == name).Sum(s => s.Value);
             };
             
             var stats = new StatisticsDto
             {
-                Enqueued = jobs.Count(v=>stateIds.Where(s=>s.Name == "Enqueued").Any(s=>s.Id == v.StateId)),
-                Failed = jobs.Count(v=>stateIds.Where(s=>s.Name == "Failed").Any(s=>s.Id == v.StateId)),
-                Processing = jobs.Count(v=>stateIds.Where(s=>s.Name == "Processing").Any(s=>s.Id == v.StateId)),
-                Scheduled = jobs.Count(v=>stateIds.Where(s=>s.Name == "Scheduled").Any(s=>s.Id == v.StateId)),
-                Servers = _storage.ObjectRepository.Set<ServerModel>().Count(),
+                Enqueued = jobs.Count(v=> v.State?.Name == EnqueuedState.StateName),
+                Failed = jobs.Count(v=> v.State?.Name == FailedState.StateName),
+                Processing = jobs.Count(v=> v.State?.Name == ProcessingState.StateName),
+                Scheduled = jobs.Count(v=> v.State?.Name == ScheduledState.StateName),
+                Servers = _repository.Set<ServerModel>().Count(),
                 Succeeded = count("stats:succeeded"),
                 Deleted = count("stats:deleted"),
-                Recurring = _storage.ObjectRepository
-                    .Set<SetModel>().Count(v => v.Key == "recurring-jobs"),
-                Queues = _storage.QueueProviders
-                    .SelectMany(x => x.GetJobQueueMonitoringApi().GetQueues())
-                    .Count()
+                Recurring = _repository.Set<SetModel>().Count(v => v.Key == "recurring-jobs"),
+                Queues = _storage.MonitoringApi.GetQueues().Count()
             };
 
             return stats;
@@ -287,7 +304,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
                 endDate = endDate.AddHours(-1);
             }
 
-            var keyMaps = dates.ToDictionary(x => $"stats:{type}:{x.ToString("yyyy-MM-dd-HH")}", x => x);
+            var keyMaps = dates.ToDictionary(x => $"stats:{type}:{x:yyyy-MM-dd-HH}", x => x);
 
             return GetTimelineStats(keyMaps);
         }
@@ -310,9 +327,22 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
         private Dictionary<DateTime, long> GetTimelineStats(IDictionary<string, DateTime> keyMaps)
         {
             var valuesMap =
-                _storage.ObjectRepository.Set<AggregatedCounterModel>()
+                _repository.Set<CounterModel>()
                     .Where(v => keyMaps.Keys.Contains(v.Key))
-                    .ToDictionary(v => v.Key, v => v.Value);
+                    .ToList()
+                    .Aggregate(new Dictionary<string, long>(), (a, b) =>
+                    {
+                        if (!a.ContainsKey(b.Key))
+                        {
+                            a[b.Key] = b.Value;
+                        }
+                        else
+                        {
+                            a[b.Key] += b.Value;
+                        }
+
+                        return a;
+                    });
 
             foreach (var key in keyMaps.Keys)
             {
@@ -329,19 +359,9 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
             return result;
         }
 
-        private ObjectRepositoryJobQueueMonitoringApi GetQueueApi(string queueName)
-        {
-            var provider = _storage.QueueProviders.GetProvider(queueName);
-            var monitoringApi = provider.GetJobQueueMonitoringApi();
-
-            return monitoringApi;
-        }
-
         private JobList<EnqueuedJobDto> EnqueuedJobs(IEnumerable<Guid> jobIds)
         {
-            var states = _storage.ObjectRepository.Set<StateModel>().ToDictionary(v => v.Id, v => v);
-
-            var jobs = _storage.ObjectRepository.Set<JobModel>()
+            var jobs = _repository.Set<JobModel>()
                 .Where(v => jobIds.Contains(v.Id))
                 .ToDictionary(v=>v.Id, v=>v);
             
@@ -351,12 +371,11 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
             return DeserializeJobs(
                 sortedSqlJobs,
-                states,
                 (sqlJob, job, stateData) => new EnqueuedJobDto
                 {
                     Job = job,
-                    State = states[sqlJob.StateId].Name,
-                    EnqueuedAt = states[sqlJob.StateId].Name == EnqueuedState.StateName
+                    State = sqlJob.State?.Name,
+                    EnqueuedAt = sqlJob.State?.Name == EnqueuedState.StateName
                         ? JobHelper.DeserializeNullableDateTime(stateData["EnqueuedAt"])
                         : null
                 });
@@ -364,9 +383,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
         private long GetNumberOfJobsByStateName(string stateName)
         {
-            var stateId = _storage.ObjectRepository.Set<StateModel>().Where(v => v.Name == stateName).Select(v => v.Id)
-                .FirstOrDefault();
-            return _storage.ObjectRepository.Set<JobModel>().Count(v => v.StateId == stateId);
+            return _repository.Set<JobModel>().Count(v => v.State?.Name == stateName);
         }
 
         private static Job DeserializeJob(string invocationData, string arguments)
@@ -390,19 +407,16 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
             string stateName,
             Func<JobModel, Job, Dictionary<string, string>, TDto> selector)
         {
-            var states = _storage.ObjectRepository.Set<StateModel>().ToDictionary(v => v.Id, v => v);
-
-            var jobs = _storage.ObjectRepository.Set<JobModel>()
-                .Where(s => states[s.StateId].Name == stateName)
+            var jobs = _repository.Set<JobModel>()
+                .Where(s => s.State?.Name == stateName)
                 .Skip(from)
                 .Take(count)
                 .ToList();
                 
-            return DeserializeJobs(jobs, states, selector);
+            return DeserializeJobs(jobs, selector);
         }
 
-        private static JobList<TDto> DeserializeJobs<TDto>(IEnumerable<JobModel> jobs,
-            Dictionary<Guid, StateModel> states,
+        private static JobList<TDto> DeserializeJobs<TDto>(ICollection<JobModel> jobs,
             Func<JobModel, Job, Dictionary<string, string>, TDto> selector)
         {
             var result = new List<KeyValuePair<string, TDto>>(jobs.Count());
@@ -413,7 +427,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 
                 if (job.InvocationData != null)
                 {
-                    var deserializedData = JobHelper.FromJson<Dictionary<string, string>>(states[job.StateId].Data);
+                    var deserializedData = JobHelper.FromJson<Dictionary<string, string>>(job.State?.Data);
                     var stateData = deserializedData != null
                         ? new Dictionary<string, string>(deserializedData, StringComparer.OrdinalIgnoreCase)
                         : null;
@@ -426,30 +440,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
             }
 
             return new JobList<TDto>(result);
-        }
-
-        private JobList<FetchedJobDto> FetchedJobs(IEnumerable<Guid> jobIds)
-        {
-            var states = _storage.ObjectRepository.Set<StateModel>().ToDictionary(v => v.Id, v => v);
-
-            var jobs = _storage.ObjectRepository.Set<JobModel>()
-                .Where(v => jobIds.Contains(v.Id))
-                .ToList();
-
-            var result = new List<KeyValuePair<string, FetchedJobDto>>(jobs.Count);
-
-            foreach (var job in jobs)
-            {
-                result.Add(new KeyValuePair<string, FetchedJobDto>(
-                    job.Id.ToString(),
-                    new FetchedJobDto
-                    {
-                        Job = DeserializeJob(job.InvocationData, job.Arguments),
-                        State = states[job.StateId].Name                        
-                    }));
-            }
-
-            return new JobList<FetchedJobDto>(result);
         }
     }
 }
