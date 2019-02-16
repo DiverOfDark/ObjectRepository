@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using LiteDB;
+using Newtonsoft.Json;
 
 namespace OutCode.EscapeTeams.ObjectRepository.LiteDB
 {
