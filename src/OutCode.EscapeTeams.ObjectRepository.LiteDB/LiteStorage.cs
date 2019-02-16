@@ -70,6 +70,18 @@ namespace OutCode.EscapeTeams.ObjectRepository.LiteDB
             return Task.CompletedTask;
         }
 
+        public string ExportStream()
+        {
+            var result = new
+            {
+                add = _entitiesToAdd.ToDictionary(v => v.Key, v => v.Value.ToList()),
+                remove = _entitiesToRemove.ToDictionary(v => v.Key, v => v.Value.ToList()),
+                mod = _entitiesToUpdate.ToDictionary(v => v.Key, v => v.Value.ToList()),
+            };
+
+            return JsonConvert.SerializeObject(result);
+        }
+
         private void ProcessAction(ConcurrentDictionary<Type, ConcurrentList<BaseEntity>> dictionary,
             Action<BaseEntity, LiteCollection<BsonDocument>> entity)
         {
