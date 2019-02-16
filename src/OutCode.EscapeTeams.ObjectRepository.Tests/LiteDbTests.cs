@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using LiteDB;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -34,6 +35,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
                 objectRepo.Add(_testModel);
                 objectRepo.Add(_parentModel);
                 objectRepo.Add(_childModel);
+                GetStorage(objectRepo).SaveChanges().GetAwaiter().GetResult();
             }
 
             return objectRepo;
@@ -46,6 +48,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             public LiteDbTestObjectRepository(LiteDbStorage dbLiteStorage) : base(dbLiteStorage, NullLogger.Instance)
             {
                 LiteStorage = dbLiteStorage;
+                IsReadOnly = true;
                 AddType((TestEntity x) => new TestModel(x));
                 AddType((ParentEntity x) => new ParentModel(x));
                 AddType((ChildEntity x) => new ChildModel(x));

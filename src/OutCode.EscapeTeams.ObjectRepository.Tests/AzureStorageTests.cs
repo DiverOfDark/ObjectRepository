@@ -41,6 +41,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
         {
             public AzureObjectRepository(AzureTableContext dbAzureTableContext) : base(dbAzureTableContext, NullLogger.Instance)
             {
+                IsReadOnly = true;
                 AzureTableContext = dbAzureTableContext;
                 AddType((TestEntity x) => new TestModel(x));
                 AddType((ParentEntity x) => new ParentModel(x));

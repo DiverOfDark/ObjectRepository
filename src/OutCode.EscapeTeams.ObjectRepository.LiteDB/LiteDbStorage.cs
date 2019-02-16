@@ -34,7 +34,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.LiteDB
 
         public Task SaveChanges()
         {
-            if (Interlocked.CompareExchange(ref _saveInProgress, 1, 0) == 1)
+            if (Interlocked.CompareExchange(ref _saveInProgress, 1, 0) == 0)
             {
                 try
                 {
@@ -60,7 +60,14 @@ namespace OutCode.EscapeTeams.ObjectRepository.LiteDB
 
                     ProcessAction(_entitiesToAdd, (x, y) => y.Upsert(_mapper.ToDocument(x)));
                     ProcessAction(_entitiesToUpdate, (x, y) => y.Update(_mapper.ToDocument(x)));
-                    ProcessAction(_entitiesToRemove, (x, y) => y.Delete(_mapper.ToDocument(x)));
+                    ProcessAction(_entitiesToRemove, (x, y) =>
+                    {
+                        if (!y.Delete(x.Id))
+                        {
+                            throw new InvalidOperationException(
+                                "Failed to remove entity from storage " + _mapper.ToDocument(x));
+                        }
+                    });
                 }
                 finally
                 {

@@ -27,8 +27,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
         {
             var objectRepo = CreateRepository();
 
-            objectRepo.SaveChanges();
-            
             var storage = GetStorage(objectRepo);
 
             storage.SaveChanges().GetAwaiter().GetResult();
@@ -51,8 +49,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
         {
             var objectRepo = CreateRepository();
 
-            objectRepo.SaveChanges();
-            
             var storage = GetStorage(objectRepo);
 
             storage.SaveChanges().GetAwaiter().GetResult();
@@ -79,7 +75,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             objectRepo.Remove(_testModel);
             objectRepo.Remove(_childModel);
 
-            objectRepo.SaveChanges();
             var storage = GetStorage(objectRepo);
             storage.SaveChanges().GetAwaiter().GetResult();
 
@@ -223,7 +218,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
 
             objectRepo.Add(newTestModel);
 
-            objectRepo.SaveChanges();
             var storage = GetStorage(objectRepo);
             storage.SaveChanges().GetAwaiter().GetResult();
 
@@ -234,7 +228,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
 
             newTestModel.Property = "234";
 
-            objectRepo.SaveChanges();
             storage.SaveChanges().GetAwaiter().GetResult();
             testsStored = storage.GetAll<TestEntity>().GetAwaiter().GetResult().ToList();
 
@@ -253,7 +246,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             newTestModel.Property = "123";
             objectRepo.Remove(newTestModel);
 
-            objectRepo.SaveChanges();
             var storage = GetStorage(objectRepo);
             storage.SaveChanges().GetAwaiter().GetResult();
 

@@ -54,7 +54,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
         /// </summary>
         public async Task SaveChanges()
         {
-            if (Interlocked.CompareExchange(ref _saveInProgress, 1, 0) == 1)
+            if (Interlocked.CompareExchange(ref _saveInProgress, 1, 0) == 0)
             {
                 try
                 {
