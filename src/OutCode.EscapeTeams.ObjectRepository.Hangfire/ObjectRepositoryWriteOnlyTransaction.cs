@@ -46,7 +46,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
             {
                 var jobIdGuid = Guid.Parse(jobId);
 
-                _storage.ObjectRepository.Set<JobModel>().First(v => v.Id == jobIdGuid)
+                _storage.ObjectRepository.Set<JobModel>().Find(jobIdGuid)
                     .StateId = jobState.Id;
             });
         }
@@ -59,7 +59,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
         private StateModel AddJobStateImpl(string jobId, IState state)
         {
             var jobIdGuid = Guid.Parse(jobId);
-            var job = _storage.ObjectRepository.Set<JobModel>().First(v => v.Id == jobIdGuid);
+            var job = _storage.ObjectRepository.Set<JobModel>().Find(jobIdGuid);
 
             if (job == null)
                 return null;

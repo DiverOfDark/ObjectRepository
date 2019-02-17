@@ -40,6 +40,16 @@ namespace OutCode.EscapeTeams.ObjectRepository
 
         public ConcurrentDictionary<string, ConcurrentDictionary<object, T>> Indexes { get; }
 
+        public T Find(Guid id)
+        {
+            if (Indexes[nameof(ModelBase.Id)].TryGetValue(id, out T result))
+            {
+                return result;
+            }
+
+            return default(T);
+        }
+
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => _dictionary.Values.GetEnumerator();
 
         public override IEnumerator GetEnumerator() => _dictionary.Values.GetEnumerator();

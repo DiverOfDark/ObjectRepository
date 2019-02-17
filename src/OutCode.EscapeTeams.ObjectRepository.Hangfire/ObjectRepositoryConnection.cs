@@ -111,7 +111,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 			if (!Guid.TryParse(id, out var guid))
 				return null;
 			
-			var jobData = _storage.ObjectRepository.Set<JobModel>().FirstOrDefault(v => v.Id == guid);
+			var jobData = _storage.ObjectRepository.Set<JobModel>().Find(guid);
 
             if (jobData == null) return null;
 
@@ -146,11 +146,11 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 			if (!Guid.TryParse(jobId, out var jobIdGuid))
 				return null;
 			
-			var stateId = _storage.ObjectRepository.Set<JobModel>().FirstOrDefault(v => v.Id == jobIdGuid);
-			if (stateId == null)
+			var stateId = _storage.ObjectRepository.Set<JobModel>().Find(jobIdGuid);
+			if (stateId?.StateId == null)
 				return null;
 
-			var state = _storage.ObjectRepository.Set<StateModel>().FirstOrDefault(v => v.Id == stateId.StateId);
+			var state = _storage.ObjectRepository.Set<StateModel>().Find(stateId.StateId.Value);
 			if (state == null)
 				return null;
 			

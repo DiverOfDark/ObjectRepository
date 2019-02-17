@@ -38,7 +38,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
         public void Requeue()
         {
             _jobsTakenOut.Remove(_job);
-            _storage.Set<JobQueueModel>().First(s => s.Id == Id).FetchedAt = null;
+            _storage.Set<JobQueueModel>().Find(Id).FetchedAt = null;
         }
 
         public void Dispose()

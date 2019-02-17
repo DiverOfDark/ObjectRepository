@@ -229,7 +229,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
         {
             if (!Guid.TryParse(jobIdString, out var jobId))
                 return null;
-            var job = _repository.Set<JobModel>().FirstOrDefault(v => v.Id == jobId);
+            var job = _repository.Set<JobModel>().Find(jobId);
             if (job == null) 
                 return null;
 

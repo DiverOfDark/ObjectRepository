@@ -72,6 +72,27 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             Assert.AreEqual(parentModel.OptionalChildren.Count(), 0);
             Assert.AreEqual(childModel.Length, 0);
         }
+
+        [TestMethod]
+        public void TestThatFindWorks()
+        {
+            // Given
+            var id = Guid.NewGuid();
+            var testStorage = new TestStorage
+            {
+                new ParentEntity(id),
+            };
+
+            var instance = new TestObjectRepository(testStorage);
+
+            // When
+            instance.WaitForLoad();
+
+            var set = instance.Set<ParentModel>();
+            
+            Assert.AreEqual(set.Find(id), set.Single());
+            Assert.AreEqual(set.Find(Guid.Empty), null);
+        }
         
         [TestMethod, Ignore("TODO finds out how to find which property on which object needs to be reset when such happens.")]
         public void TestThatDeletingParentDoesntBreaks()
