@@ -29,6 +29,8 @@ namespace OutCode.EscapeTeams.ObjectRepository
 
         protected IStorage Storage { get; }
 
+        protected bool ThrowIfBadItems { get; }
+
         public bool IsLoading => _tasks?.Any(s => !s.IsCompleted) ?? true;
 
         public bool IsReadOnly
@@ -84,32 +86,42 @@ namespace OutCode.EscapeTeams.ObjectRepository
 
             Parallel.ForEach(_sets.Keys, key =>
             {
-                var sw = new Stopwatch();
-                
-                var properties =
-                    key.GetTypeInfo()
-                        .GetProperties()
-                        .Where(
-                            v =>
-                                v.PropertyType.FullName.Contains("EscapeTeams") ||
-                                v.PropertyType.FullName.Contains("IEnumerable"))
-                        .Select(
-                            v => v.GetMethod.CreateDelegate(typeof(Func<,>).MakeGenericType(key, v.PropertyType)))
-                        .ToList();
-
-                sw.Start();
-
-                foreach (var item in (dynamic)_sets[key])
+                try
                 {
-                    foreach (var p in properties)
+                    var sw = new Stopwatch();
+
+                    var properties =
+                        key.GetTypeInfo()
+                            .GetProperties()
+                            .Where(
+                                v =>
+                                    v.PropertyType.FullName.Contains("EscapeTeams") ||
+                                    v.PropertyType.FullName.Contains("IEnumerable"))
+                            .Select(
+                                v => v.GetMethod.CreateDelegate(typeof(Func<,>).MakeGenericType(key, v.PropertyType)))
+                            .ToList();
+
+                    sw.Start();
+
+                    foreach (var item in (dynamic) _sets[key])
                     {
-                        p.DynamicInvoke(item);
+                        foreach (var p in properties)
+                        {
+                            p.DynamicInvoke(item);
+                        }
+                    }
+
+                    sw.Stop();
+                    _logger.LogInformation(
+                        $"Warming up of type {key.Name} completed, took {sw.Elapsed.TotalSeconds} seconds.");
+                }
+                catch (Exception ex)
+                {
+                    if (ThrowIfBadItems)
+                    {
+                        throw;
                     }
                 }
-
-                sw.Stop();
-
-                _logger.LogInformation($"Warming up of type {key.Name} completed, took {sw.Elapsed.TotalSeconds} seconds.");
             });
         }
 
