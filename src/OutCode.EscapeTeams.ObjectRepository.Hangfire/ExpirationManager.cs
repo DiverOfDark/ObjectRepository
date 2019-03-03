@@ -34,6 +34,12 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
             _storage.ObjectRepository.Remove<ListModel>(s => s.ExpireAt < DateTime.UtcNow);
             _storage.ObjectRepository.Remove<SetModel>(s => s.ExpireAt < DateTime.UtcNow);
             _storage.ObjectRepository.Remove<HashModel>(s => s.ExpireAt < DateTime.UtcNow);
+            
+            // Hangfire does clever job on storing retries in totally strange way.
+            _storage.ObjectRepository.Remove<SetModel>(s =>
+                s.Key == "retries" && Guid.TryParse(s.Value, out var jobId) &&
+                _storage.ObjectRepository.Set<JobModel>().Find(jobId) == null);
+            
             cancellationToken.WaitHandle.WaitOne(TimeSpan.FromMinutes(1));
         }
     }
