@@ -17,14 +17,14 @@ namespace OutCode.EscapeTeams.ObjectRepository
                 return "<null>";
             }
 
-            if (obj.GetType().GetTypeInfo().IsPrimitive || obj is string)
+            if (obj.GetType().GetTypeInfo().IsPrimitive || obj is string || obj is Enum)
             {
                 return obj.ToString();
             }
 
             var sb = new StringBuilder();
 
-            foreach (var item in obj.GetType().GetProperties().Where(v => v.PropertyType.GetTypeInfo().IsPrimitive || v.PropertyType == typeof(string)))
+            foreach (var item in obj.GetType().GetProperties().Where(v => v.PropertyType.GetTypeInfo().IsPrimitive || v.PropertyType == typeof(string) || v.PropertyType.IsEnum))
                 sb.Append("<br/><b>" + item.Name + ":</b> " + (item.GetValue(obj) ?? ""));
 
             foreach (var item in obj.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance))
