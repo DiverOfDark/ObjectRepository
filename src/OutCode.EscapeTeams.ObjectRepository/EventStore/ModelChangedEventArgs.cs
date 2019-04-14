@@ -1,4 +1,6 @@
-﻿namespace OutCode.EscapeTeams.ObjectRepository
+﻿using OutCode.EscapeTeams.ObjectRepository.EventStore;
+
+namespace OutCode.EscapeTeams.ObjectRepository
 {
     public class ModelChangedEventArgs
     {

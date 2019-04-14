@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using OutCode.EscapeTeams.ObjectRepository.EventStore;
 
 namespace OutCode.EscapeTeams.ObjectRepository.File
 {
@@ -53,17 +54,17 @@ namespace OutCode.EscapeTeams.ObjectRepository.File
             return Task.CompletedTask;
         }
 
-        public Task<IEnumerable<T>> GetAll<T>() =>
+        public Task<IEnumerable<T>> GetAll<T>() where T:BaseEntity =>
             Task.FromResult((IEnumerable<T>)_store.GetOrAdd(typeof(T), x => new ConcurrentList<BaseEntity>()).Cast<T>().ToList());
 
-        public void Track(ObjectRepositoryBase objectRepository, bool isReadonly)
+        public void Track(ITrackable trackable, bool isReadonly)
         {
             if (!isReadonly)
             {
                 _saveTimer = new Timer(_ => SaveChanges(), null, 0, 5000);
             }
 
-            objectRepository.ModelChanged += (change) =>
+            trackable.ModelChanged += (change) =>
             {
                 _isDirty = true;
 

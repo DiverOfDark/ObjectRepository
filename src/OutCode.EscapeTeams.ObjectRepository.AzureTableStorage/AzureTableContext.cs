@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
+using OutCode.EscapeTeams.ObjectRepository.EventStore;
 
 namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
 {
@@ -92,7 +93,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
         /// <summary>
         /// Returns the entire contents of a table.
         /// </summary>
-        public Task<IEnumerable<T>> GetAll<T>()
+        public Task<IEnumerable<T>> GetAll<T>() where T:BaseEntity
         {
             var task = GetType().GetMethod(nameof(ExecuteQuery), BindingFlags.Instance | BindingFlags.NonPublic).MakeGenericMethod(typeof(T)).Invoke(this, new object[0]);
             return (Task<IEnumerable<T>>) task;
@@ -268,14 +269,14 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
             return d;
         }
 
-        public void Track(ObjectRepositoryBase objectRepository, bool isReadonly)
+        public void Track(ITrackable trackable, bool isReadonly)
         {
             if (!isReadonly)
             {
                 _saveTimer = new Timer(_ => SaveChanges(), null, 0, 5000);
             }
 
-            objectRepository.ModelChanged += (change) =>
+            trackable.ModelChanged += (change) =>
             {
                 switch (change.ChangeType)
                 {

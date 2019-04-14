@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace OutCode.EscapeTeams.ObjectRepository
 {
-    public class ObjectRepositoryBase
+    public class ObjectRepositoryBase : ITrackable
     {
         private readonly ILogger _logger;
         private readonly List<Task> _tasks = new List<Task>();
@@ -45,7 +45,8 @@ namespace OutCode.EscapeTeams.ObjectRepository
         }
 
         public void AddType<TStore,TModel>(Func<TStore,TModel> converter)
-            where TModel:ModelBase
+            where TModel:ModelBase 
+            where TStore : BaseEntity
         {
             if (!_typeAdded)
             {

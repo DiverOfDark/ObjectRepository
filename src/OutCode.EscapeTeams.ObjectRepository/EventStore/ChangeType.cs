@@ -1,4 +1,4 @@
-﻿namespace OutCode.EscapeTeams.ObjectRepository
+﻿namespace OutCode.EscapeTeams.ObjectRepository.EventStore
 {
     public enum ChangeType
     {

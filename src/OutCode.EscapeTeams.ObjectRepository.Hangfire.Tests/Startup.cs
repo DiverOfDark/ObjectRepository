@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using OutCode.EscapeTeams.ObjectRepository.EventStore;
 
 namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Tests
 {
@@ -28,11 +29,11 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Tests
             private ConcurrentList<object> items = new ConcurrentList<object>();
             
             public Task SaveChanges() => Task.CompletedTask;
-            public async Task<IEnumerable<T>> GetAll<T>() => items.OfType<T>().ToList();
+            public async Task<IEnumerable<T>> GetAll<T>() where T:BaseEntity => items.OfType<T>().ToList();
 
-            public void Track(ObjectRepositoryBase objectRepository, bool isReadonly)
+            public void Track(ITrackable trackable, bool isReadonly)
             {
-                objectRepository.ModelChanged += handler;
+                trackable.ModelChanged += handler;
             }
 
             private void handler(ModelChangedEventArgs obj)

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using LiteDB;
 using Newtonsoft.Json;
+using OutCode.EscapeTeams.ObjectRepository.EventStore;
 
 namespace OutCode.EscapeTeams.ObjectRepository.LiteDB
 {
@@ -113,17 +114,17 @@ namespace OutCode.EscapeTeams.ObjectRepository.LiteDB
             }
         }
 
-        public Task<IEnumerable<T>> GetAll<T>() =>
+        public Task<IEnumerable<T>> GetAll<T>() where T:BaseEntity =>
             Task.FromResult((IEnumerable<T>) _database.GetCollection<T>().FindAll().ToList());
 
-        public void Track(ObjectRepositoryBase objectRepository, bool isReadonly)
+        public void Track(ITrackable trackable, bool isReadonly)
         {
             if (!isReadonly)
             {
                 _saveTimer = new Timer(_ => SaveChanges(), null, 0, 5000);
             }
 
-            objectRepository.ModelChanged += (change) =>
+            trackable.ModelChanged += (change) =>
             {
                 switch (change.ChangeType)
                 {

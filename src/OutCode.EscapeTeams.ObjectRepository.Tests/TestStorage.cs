@@ -9,9 +9,9 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
     {
         public Task SaveChanges() => Task.CompletedTask;
 
-        public Task<IEnumerable<T>> GetAll<T>() => Task.FromResult(this.OfType<T>());
+        public Task<IEnumerable<T>> GetAll<T>() where T:BaseEntity => Task.FromResult(this.OfType<T>());
 
-        public void Track(ObjectRepositoryBase objectRepository, bool isReadonly)
+        public void Track(ITrackable trackable, bool isReadonly)
         {
         }
 
