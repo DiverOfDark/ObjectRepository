@@ -57,9 +57,9 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             var parentsStored = storage.GetAll<ParentEntity>().GetAwaiter().GetResult().ToList();
             var childStored = storage.GetAll<ChildEntity>().GetAwaiter().GetResult().ToList();
 
-            Assert.AreEqual(testsStored.Count(), 1);
-            Assert.AreEqual(parentsStored.Count(), 1);
-            Assert.AreEqual(childStored.Count(), 1);
+            Assert.AreEqual(testsStored.Count, 1);
+            Assert.AreEqual(parentsStored.Count, 1);
+            Assert.AreEqual(childStored.Count, 1);
 
             Assert.AreEqual(testsStored.First().Id, _testModel.TestId);
             Assert.AreEqual(parentsStored.First().Id, _parentModel.TestId);
@@ -82,9 +82,9 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             var parentsStored = storage.GetAll<ParentEntity>().GetAwaiter().GetResult().ToList();
             var childStored = storage.GetAll<ChildEntity>().GetAwaiter().GetResult().ToList();
 
-            Assert.AreEqual(testsStored.Count(), 0);
-            Assert.AreEqual(parentsStored.Count(), 1);
-            Assert.AreEqual(childStored.Count(), 0);
+            Assert.AreEqual(testsStored.Count, 0);
+            Assert.AreEqual(parentsStored.Count, 1);
+            Assert.AreEqual(childStored.Count, 0);
 
             Assert.AreEqual(parentsStored.First().Id, _parentModel.TestId);
         }
@@ -254,5 +254,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             Assert.AreEqual(testsStored.Count, 1);
             Assert.AreEqual(testsStored.First().Id, _testModel.TestId);
         }
+        
+        
     }
 }

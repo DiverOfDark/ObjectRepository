@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace OutCode.EscapeTeams.ObjectRepository.EventStore
 {
-    internal class EventModel : ModelBase
+    public class EventModel : ModelBase
     {
         private EventEntity _entity;
 

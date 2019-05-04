@@ -2,7 +2,7 @@ using System;
 
 namespace OutCode.EscapeTeams.ObjectRepository.EventStore
 {
-    internal class EventEntity : BaseEntity
+    public class EventEntity : BaseEntity
     {
         public string Entity { get; set; }
 
