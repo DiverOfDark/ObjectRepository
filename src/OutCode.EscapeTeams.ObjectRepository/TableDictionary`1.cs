@@ -33,6 +33,15 @@ namespace OutCode.EscapeTeams.ObjectRepository
 
             _columnsForIndex.TryAdd(key, func);
 
+            _owner.ModelChanged += change =>
+            {
+                if (change.Source is T model && change.PropertyName == key)
+                {
+                    _indexes[key].TryRemove(change.OldValue, out var _);
+                    _indexes[key].TryAdd(change.NewValue, model);
+                }
+            };
+            
             var dic = new ConcurrentDictionary<object, T>(_dictionary.Select(v => new KeyValuePair<object, T>(func(v.Value), v.Value)));
             _indexes.TryAdd(key, dic);
         }
@@ -44,7 +53,7 @@ namespace OutCode.EscapeTeams.ObjectRepository
                 return result;
             }
 
-            return default(T);
+            return default;
         }
 
         public T Find(Guid id) => Find(x => x.Id, id);
@@ -70,18 +79,6 @@ namespace OutCode.EscapeTeams.ObjectRepository
             {
                 _indexes[index.Key].TryRemove(index.Value(itemEntity), out _);
             }
-        }
-
-        private static string GetPropertyName(Expression<Func<T, object>> index)
-        {
-            var expression = index.Body;
-            
-            if (expression is UnaryExpression unary)
-            {
-                expression = unary.Operand;
-            }
-
-            return ((MemberExpression) expression).Member.Name;
         }
     }
 }

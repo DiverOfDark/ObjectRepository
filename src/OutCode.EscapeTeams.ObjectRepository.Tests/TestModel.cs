@@ -33,9 +33,11 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
 
     public class ChildModel : ModelBase
     {
+        private readonly ChildEntity _myEntity;
+
         public ChildModel(ChildEntity entity)
         {
-            Entity = entity;
+            _myEntity = entity;
         }
 
         public Guid? NullableTestId => null;
@@ -43,18 +45,18 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
         public string Property
         {
             get => ((ChildEntity) Entity).Property;
-            set => UpdateProperty(() => ((ChildEntity) Entity).Property, value);
+            set => UpdateProperty(() => _myEntity.Property, value);
         }
 
         public Guid ParentId
         {
             get => ((ChildEntity) Entity).ParentId;
-            set => UpdateProperty(() => ((ChildEntity) Entity).ParentId, value);
+            set => UpdateProperty(() => _myEntity.ParentId, value);
         }
 
         public ParentModel Parent => Single<ParentModel>(ParentId);
         public ParentModel ParentOptional => Single<ParentModel>(NullableTestId);
 
-        protected override BaseEntity Entity { get; }
+        protected override BaseEntity Entity => _myEntity;
     }
 }

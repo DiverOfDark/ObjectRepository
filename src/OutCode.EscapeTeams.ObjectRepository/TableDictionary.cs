@@ -25,12 +25,7 @@ namespace OutCode.EscapeTeams.ObjectRepository
         {
             var type = typeof(TForeign);
 
-            if (!(foreignKey.Body is MemberExpression foreignKeyBody))
-            {
-                foreignKeyBody = (MemberExpression) ((UnaryExpression) foreignKey.Body).Operand;
-            }
-
-            var guidMember = foreignKeyBody.Member.Name;
+            var guidMember = GetPropertyName(foreignKey);
 
             ConcurrentDictionary<string, Tuple<Delegate, object>> t;
 
@@ -114,6 +109,18 @@ namespace OutCode.EscapeTeams.ObjectRepository
             }
 
             return (ConcurrentDictionary<Guid, ConcurrentList<TForeign>>) value.Item2;
+        }
+        
+        protected static string GetPropertyName<T,U>(Expression<Func<T, U>> index)
+        {
+            var expression = index.Body;
+            
+            if (expression is UnaryExpression unary)
+            {
+                expression = unary.Operand;
+            }
+
+            return ((MemberExpression) expression).Member.Name;
         }
 
         public abstract IEnumerator GetEnumerator();
