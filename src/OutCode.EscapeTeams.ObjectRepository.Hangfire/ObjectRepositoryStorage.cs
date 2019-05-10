@@ -26,7 +26,9 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
             return new ObjectRepositoryConnection(this);
         }
 
+#pragma warning disable 618
         public override IEnumerable<IServerComponent> GetComponents()
+#pragma warning restore 618
         {
             yield return new ExpirationManager(this);
         }

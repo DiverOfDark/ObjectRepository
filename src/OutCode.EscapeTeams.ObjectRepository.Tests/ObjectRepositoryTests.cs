@@ -116,7 +116,36 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             Assert.IsNotNull(child);
             Assert.AreEqual(child.Property, "2");
         }
-        
+
+        [TestMethod]
+        public void TestThatCustomIndexesWorksAfterPropertyChange()
+        {
+            var id = Guid.NewGuid();
+            var testStorage = new TestStorage
+            {
+                new ParentEntity(id),
+                new ChildEntity(Guid.NewGuid()) {ParentId = id, Property = "1"},
+                new ChildEntity(Guid.NewGuid()) {ParentId = id, Property = "2"}
+            };
+
+            var instance = new TestObjectRepository(testStorage);
+
+            // When
+            instance.WaitForLoad();
+
+            instance.Set<ChildModel>().AddIndex(x => x.Property);
+            var child = instance.Set<ChildModel>().Find(x => x.Property, "2");
+
+            Assert.IsNotNull(child);
+            Assert.AreEqual(child.Property, "2");
+
+            child.Property = "3";
+
+            Assert.IsNull(instance.Set<ChildModel>().Find(x => x.Property, "2"));
+
+            Assert.AreEqual(child, instance.Set<ChildModel>().Find(x => x.Property, "3"));
+        }
+
         [TestMethod, Ignore("TODO finds out how to find which property on which object needs to be reset when such happens.")]
         public void TestThatDeletingParentDoesntBreaks()
         {

@@ -115,7 +115,7 @@ namespace OutCode.EscapeTeams.ObjectRepository
                     _logger.LogInformation(
                         $"Warming up of type {key.Name} completed, took {sw.Elapsed.TotalSeconds} seconds.");
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     if (ThrowIfBadItems)
                     {

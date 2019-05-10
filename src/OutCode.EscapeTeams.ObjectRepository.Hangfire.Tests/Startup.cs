@@ -28,7 +28,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Tests
             private ConcurrentList<object> items = new ConcurrentList<object>();
             
             public Task SaveChanges() => Task.CompletedTask;
-            public async Task<IEnumerable<T>> GetAll<T>() => items.OfType<T>().ToList();
+            public Task<IEnumerable<T>> GetAll<T>() => Task.FromResult<IEnumerable<T>>(items.OfType<T>().ToList());
 
             public void Track(ObjectRepositoryBase objectRepository, bool isReadonly)
             {
@@ -48,7 +48,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Tests
                 }
             }
 
-            public event Action<Exception> OnError;
+            public event Action<Exception> OnError = delegate { };
         }
     }
     

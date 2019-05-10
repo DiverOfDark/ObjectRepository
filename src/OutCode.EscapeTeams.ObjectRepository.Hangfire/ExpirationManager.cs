@@ -5,6 +5,7 @@ using Hangfire.Common;
 using Hangfire.Logging;
 using Hangfire.Server;
 using OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities;
+#pragma warning disable 618
 
 namespace OutCode.EscapeTeams.ObjectRepository.Hangfire
 {

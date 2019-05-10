@@ -272,7 +272,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.AzureTableStorage
         {
             if (!isReadonly)
             {
-                _saveTimer = new Timer(_ => SaveChanges(), null, 0, 5000);
+                _saveTimer = new Timer(_ => SaveChanges().GetAwaiter().GetResult(), null, 0, 5000);
             }
 
             objectRepository.ModelChanged += (change) =>

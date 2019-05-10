@@ -15,6 +15,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
         {
         }
 
-        public event Action<Exception> OnError;
+        public event Action<Exception> OnError = delegate { };
     }
 }
