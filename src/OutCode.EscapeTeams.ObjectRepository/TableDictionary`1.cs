@@ -11,6 +11,7 @@ namespace OutCode.EscapeTeams.ObjectRepository
     {
         private readonly ObjectRepositoryBase _owner;
         private readonly ConcurrentDictionary<string, Func<T, object>> _columnsForIndex;
+        private readonly ConcurrentDictionary<string, ConcurrentDictionary<object, T>> _indexes;
         private readonly ConcurrentDictionary<BaseEntity, T> _dictionary;
 
         public TableDictionary(ObjectRepositoryBase owner, IEnumerable<T> source):base(owner)
@@ -19,36 +20,34 @@ namespace OutCode.EscapeTeams.ObjectRepository
             _dictionary = new ConcurrentDictionary<BaseEntity,T>(source.Select(v => new KeyValuePair<BaseEntity, T>(v.Entity, v)));
 
             _columnsForIndex = new ConcurrentDictionary<string, Func<T, object>>();
+
+            _indexes = new ConcurrentDictionary<string, ConcurrentDictionary<object, T>>();
+
             AddIndex(x => x.Id);
-
-            Indexes = new ConcurrentDictionary<string, ConcurrentDictionary<object, T>>();
-
-            foreach (var col in _columnsForIndex)
-            {
-                var dic = new ConcurrentDictionary<object, T>(source.Select(v => new KeyValuePair<object, T>(col.Value(v), v)));
-                Indexes.TryAdd(col.Key, dic);
-            }
         }
 
         public void AddIndex(Expression<Func<T, object>> index)
         {
-            var key = ((MemberExpression) ((UnaryExpression) index.Body).Operand).Member.Name;
+            var key = GetPropertyName(index);
             var func = index.Compile();
 
             _columnsForIndex.TryAdd(key, func);
+
+            var dic = new ConcurrentDictionary<object, T>(_dictionary.Select(v => new KeyValuePair<object, T>(func(v.Value), v.Value)));
+            _indexes.TryAdd(key, dic);
         }
 
-        public ConcurrentDictionary<string, ConcurrentDictionary<object, T>> Indexes { get; }
-
-        public T Find(Guid id)
+        public T Find(Expression<Func<T, object>> index, object value)
         {
-            if (Indexes[nameof(ModelBase.Id)].TryGetValue(id, out T result))
+            if (_indexes[GetPropertyName(index)].TryGetValue(value, out T result))
             {
                 return result;
             }
 
             return default(T);
         }
+
+        public T Find(Guid id) => Find(x => x.Id, id);
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => _dictionary.Values.GetEnumerator();
 
@@ -60,7 +59,7 @@ namespace OutCode.EscapeTeams.ObjectRepository
             _dictionary.TryAdd(instance.Entity, instance);
             foreach (var index in _columnsForIndex)
             {
-                Indexes[index.Key].TryAdd(index.Value(instance), instance);
+                _indexes[index.Key].TryAdd(index.Value(instance), instance);
             }
         }
 
@@ -69,8 +68,20 @@ namespace OutCode.EscapeTeams.ObjectRepository
             _dictionary.TryRemove(itemEntity.Entity, out _);
             foreach (var index in _columnsForIndex)
             {
-                Indexes[index.Key].TryRemove(index.Value(itemEntity), out _);
+                _indexes[index.Key].TryRemove(index.Value(itemEntity), out _);
             }
+        }
+
+        private static string GetPropertyName(Expression<Func<T, object>> index)
+        {
+            var expression = index.Body;
+            
+            if (expression is UnaryExpression unary)
+            {
+                expression = unary.Operand;
+            }
+
+            return ((MemberExpression) expression).Member.Name;
         }
     }
 }

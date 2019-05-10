@@ -53,7 +53,7 @@ namespace OutCode.EscapeTeams.ObjectRepository
 
             var set = ObjectRepository.Set<T>();
 
-            var value = set.Indexes[nameof(Id)].GetOrDefault(id.Value);
+            var value = set.Find(id.Value);
 
             if (value == null)
             {

@@ -12,6 +12,8 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
     {
         public ChildEntity(Guid id) => Id = id;
         public Guid ParentId { get; set; }
+        
+        public String Property { get; set; }
     }
     
     public class ParentModel : ModelBase
@@ -37,6 +39,12 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
         }
 
         public Guid? NullableTestId => null;
+
+        public string Property
+        {
+            get => ((ChildEntity) Entity).Property;
+            set => UpdateProperty(() => ((ChildEntity) Entity).Property, value);
+        }
 
         public Guid ParentId
         {
