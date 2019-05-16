@@ -18,10 +18,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             var dbStorage = new FileStorage(_filename);
             var objectRepo = new FileTestObjectRepository(dbStorage);
             objectRepo.OnException += ex => Console.WriteLine(ex.ToString());
-            while (objectRepo.IsLoading)
-            {
-                Thread.Sleep(50);
-            }
+            objectRepo.WaitForInitialize().GetAwaiter().GetResult();
 
             if (_firstTime)
             {

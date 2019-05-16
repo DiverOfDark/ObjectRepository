@@ -17,6 +17,8 @@ namespace OutCode.EscapeTeams.ObjectRepository
 
         protected readonly ConcurrentDictionary<Type, ITableDictionary<ModelBase>> _sets = new ConcurrentDictionary<Type, ITableDictionary<ModelBase>>();
         private bool _isReadOnly;
+        
+        private readonly TaskCompletionSource<object> _taskCompletionSource = new TaskCompletionSource<object>();
 
         public event Action<ModelChangedEventArgs> ModelChanged = delegate {};
 
@@ -29,9 +31,9 @@ namespace OutCode.EscapeTeams.ObjectRepository
 
         protected IStorage Storage { get; }
 
-        protected bool ThrowIfBadItems { get; }
+        protected bool ThrowIfBadItems { get; set; }
 
-        public bool IsLoading => _tasks?.Any(s => !s.IsCompleted) ?? true;
+        public bool IsLoading => !_taskCompletionSource.Task.IsCompleted;
 
         public bool IsReadOnly
         {
@@ -76,6 +78,8 @@ namespace OutCode.EscapeTeams.ObjectRepository
 
             _logger.LogInformation($"Loaded entities for {typeof(TStoreEntity).Name} in {sw.Elapsed.TotalSeconds} sec...");
         }
+
+        public Task WaitForInitialize() => _taskCompletionSource.Task;
 
         protected void Initialize()
         {
@@ -123,6 +127,8 @@ namespace OutCode.EscapeTeams.ObjectRepository
                     }
                 }
             });
+            
+            _taskCompletionSource.SetResult(null);
         }
 
         public T Add<T>(T instance)

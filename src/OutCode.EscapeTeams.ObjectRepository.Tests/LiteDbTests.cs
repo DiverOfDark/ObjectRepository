@@ -24,10 +24,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             var dbStorage = new LiteDbStorage(db);
             var objectRepo = new LiteDbTestObjectRepository(dbStorage);
             objectRepo.OnException += ex => Console.WriteLine(ex.ToString());
-            while (objectRepo.IsLoading)
-            {
-                Thread.Sleep(50);
-            }
+            objectRepo.WaitForInitialize().GetAwaiter().GetResult();
 
             if (firstTime)
             {

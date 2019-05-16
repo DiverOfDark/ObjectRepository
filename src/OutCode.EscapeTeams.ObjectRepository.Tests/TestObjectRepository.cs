@@ -12,13 +12,5 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             AddType((ChildEntity x) => new ChildModel(x));
             Initialize();
         }
-
-        public void WaitForLoad()
-        {
-            while (IsLoading)
-            {
-                Thread.Sleep(50);
-            }
-        }
     }
 }

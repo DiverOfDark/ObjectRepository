@@ -14,7 +14,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             var instance = new TestObjectRepository(new TestStorage());
 
             // When
-            instance.WaitForLoad();
+            instance.WaitForInitialize().GetAwaiter().GetResult();
 
             // Then
             // no exceptions
@@ -34,7 +34,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             var instance = new TestObjectRepository(testStorage);
 
             // When
-            instance.WaitForLoad();
+            instance.WaitForInitialize().GetAwaiter().GetResult();
 
             // Then
             // no exceptions
@@ -61,7 +61,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             var instance = new TestObjectRepository(testStorage);
 
             // When
-            instance.WaitForLoad();
+            instance.WaitForInitialize().GetAwaiter().GetResult();
             instance.Remove<ChildModel>(v => true);
             
             // Then
@@ -86,7 +86,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             var instance = new TestObjectRepository(testStorage);
 
             // When
-            instance.WaitForLoad();
+            instance.WaitForInitialize().GetAwaiter().GetResult();
 
             var set = instance.Set<ParentModel>();
             
@@ -108,7 +108,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             var instance = new TestObjectRepository(testStorage);
 
             // When
-            instance.WaitForLoad();
+            instance.WaitForInitialize().GetAwaiter().GetResult();
 
             instance.Set<ChildModel>().AddIndex(x => x.Property);
             var child = instance.Set<ChildModel>().Find(x=>x.Property, "2");
@@ -131,7 +131,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             var instance = new TestObjectRepository(testStorage);
 
             // When
-            instance.WaitForLoad();
+            instance.WaitForInitialize().GetAwaiter().GetResult();
 
             instance.Set<ChildModel>().AddIndex(x => x.Property);
             var child = instance.Set<ChildModel>().Find(x => x.Property, "2");
@@ -160,7 +160,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             var instance = new TestObjectRepository(testStorage);
 
             // When
-            instance.WaitForLoad();
+            instance.WaitForInitialize().GetAwaiter().GetResult();
             instance.Remove<ParentModel>(v => true);
             
             // Then

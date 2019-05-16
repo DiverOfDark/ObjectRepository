@@ -23,10 +23,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             var objectRepo = new AzureObjectRepository(storage);
             
             objectRepo.OnException += ex => Console.WriteLine(ex.ToString());
-            while (objectRepo.IsLoading)
-            {
-                Thread.Sleep(50);
-            }
+            objectRepo.WaitForInitialize().GetAwaiter().GetResult();
 
             objectRepo.Add(_testModel);
             objectRepo.Add(_parentModel);
