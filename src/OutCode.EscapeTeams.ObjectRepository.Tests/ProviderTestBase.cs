@@ -160,8 +160,8 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
                 set => UpdateProperty(() => _entity.Id, value);
             }
 
-            public IEnumerable<ChildModel> Children => Multiple<ChildModel>(x => x.ParentId);
-            public IEnumerable<ChildModel> OptionalChildren => Multiple<ChildModel>(x => x.NullableTestId);
+            public IEnumerable<ChildModel> Children => Multiple<ChildModel>(() => x => x.ParentId);
+            public IEnumerable<ChildModel> OptionalChildren => Multiple<ChildModel>(() => x => x.NullableTestId);
 
             protected override BaseEntity Entity => _entity;
         }

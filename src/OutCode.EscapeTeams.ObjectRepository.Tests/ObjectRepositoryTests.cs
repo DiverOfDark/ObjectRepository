@@ -110,9 +110,9 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             // When
             instance.WaitForInitialize().GetAwaiter().GetResult();
 
-            instance.Set<ChildModel>().AddIndex(x => x.Property);
-            var child = instance.Set<ChildModel>().Find(x=>x.Property, "2");
-            
+            instance.Set<ChildModel>().AddIndex(() => x => x.Property);
+            var child = instance.Set<ChildModel>().Find(() => x => x.Property, "2");
+
             Assert.IsNotNull(child);
             Assert.AreEqual(child.Property, "2");
         }
@@ -133,17 +133,17 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             // When
             instance.WaitForInitialize().GetAwaiter().GetResult();
 
-            instance.Set<ChildModel>().AddIndex(x => x.Property);
-            var child = instance.Set<ChildModel>().Find(x => x.Property, "2");
+            instance.Set<ChildModel>().AddIndex(() => x => x.Property);
+            var child = instance.Set<ChildModel>().Find(() => x => x.Property, "2");
 
             Assert.IsNotNull(child);
             Assert.AreEqual(child.Property, "2");
 
             child.Property = "3";
 
-            Assert.IsNull(instance.Set<ChildModel>().Find(x => x.Property, "2"));
+            Assert.IsNull(instance.Set<ChildModel>().Find(() => x => x.Property, "2"));
 
-            Assert.AreEqual(child, instance.Set<ChildModel>().Find(x => x.Property, "3"));
+            Assert.AreEqual(child, instance.Set<ChildModel>().Find(() => x => x.Property, "3"));
         }
 
         [TestMethod, Ignore("TODO finds out how to find which property on which object needs to be reset when such happens.")]

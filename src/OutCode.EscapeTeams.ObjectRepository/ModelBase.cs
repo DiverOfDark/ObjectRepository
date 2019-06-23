@@ -30,7 +30,7 @@ namespace OutCode.EscapeTeams.ObjectRepository
         /// <summary>
         /// Returns a list of related entities by mathing the current object's ID to specified property.
         /// </summary>
-        protected IEnumerable<T> Multiple<T>(Expression<Func<T, Guid?>> propertyGetter, [CallerMemberName] string callingProperty = "") where T : ModelBase
+        protected IEnumerable<T> Multiple<T>(Func<Expression<Func<T, Guid?>>> propertyGetter, [CallerMemberName] string callingProperty = "") where T : ModelBase
         {
             var multiple = ObjectRepository.Set(GetType()).GetMultiple(propertyGetter);
 

@@ -20,7 +20,7 @@ namespace OutCode.EscapeTeams.ObjectRepository
             _foreignIndexes = new ConcurrentDictionary<Type, ConcurrentDictionary<string, Tuple<Delegate, object>>>();
         }
 
-        public ConcurrentDictionary<Guid, ConcurrentList<TForeign>> GetMultiple<TForeign>(Expression<Func<TForeign, Guid?>> foreignKey)
+        public ConcurrentDictionary<Guid, ConcurrentList<TForeign>> GetMultiple<TForeign>(Func<Expression<Func<TForeign, Guid?>>> foreignKey)
             where TForeign : ModelBase
         {
             var type = typeof(TForeign);
@@ -47,7 +47,7 @@ namespace OutCode.EscapeTeams.ObjectRepository
                 {
                     if (!t.TryGetValue(guidMember, out value))
                     {
-                        var func = foreignKey.Compile();
+                        var func = foreignKey().Compile();
                         var other =
                             new ConcurrentDictionary<Guid, ConcurrentList<TForeign>>(
                                 _owner.Set<TForeign>()
@@ -110,17 +110,22 @@ namespace OutCode.EscapeTeams.ObjectRepository
 
             return (ConcurrentDictionary<Guid, ConcurrentList<TForeign>>) value.Item2;
         }
-        
-        protected static string GetPropertyName<T,U>(Expression<Func<T, U>> index)
-        {
-            var expression = index.Body;
-            
-            if (expression is UnaryExpression unary)
-            {
-                expression = unary.Operand;
-            }
 
-            return ((MemberExpression) expression).Member.Name;
+        static readonly ConcurrentDictionary<object, String> PropertyNameCache = new ConcurrentDictionary<object, string>();
+        
+        protected static string GetPropertyName<T,U>(Func<Expression<Func<T, U>>> index)
+        {
+            return PropertyNameCache.GetOrAdd(index, func =>
+            {
+                var expression = index().Body;
+
+                if (expression is UnaryExpression unary)
+                {
+                    expression = unary.Operand;
+                }
+
+                return ((MemberExpression) expression).Member.Name;
+            });
         }
 
         public abstract IEnumerator GetEnumerator();

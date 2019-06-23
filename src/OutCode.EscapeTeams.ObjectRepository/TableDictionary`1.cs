@@ -23,13 +23,13 @@ namespace OutCode.EscapeTeams.ObjectRepository
 
             _indexes = new ConcurrentDictionary<string, ConcurrentDictionary<object, T>>();
 
-            AddIndex(x => x.Id);
+            AddIndex(() => x => x.Id);
         }
 
-        public void AddIndex(Expression<Func<T, object>> index)
+        public void AddIndex(Func<Expression<Func<T, object>>> index)
         {
             var key = GetPropertyName(index);
-            var func = index.Compile();
+            var func = index().Compile();
 
             _columnsForIndex.TryAdd(key, func);
 
@@ -46,7 +46,7 @@ namespace OutCode.EscapeTeams.ObjectRepository
             _indexes.TryAdd(key, dic);
         }
 
-        public T Find(Expression<Func<T, object>> index, object value)
+        public T Find(Func<Expression<Func<T, object>>> index, object value)
         {
             if (_indexes[GetPropertyName(index)].TryGetValue(value, out T result))
             {
@@ -56,7 +56,7 @@ namespace OutCode.EscapeTeams.ObjectRepository
             return default;
         }
 
-        public T Find(Guid id) => Find(x => x.Id, id);
+        public T Find(Guid id) => Find(() => x => x.Id, id);
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => _dictionary.Values.GetEnumerator();
 
