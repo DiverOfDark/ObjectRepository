@@ -33,13 +33,13 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities
         public DateTime CreatedAt
         {
             get => _state.CreatedAt;
-            set => UpdateProperty(() => _state.CreatedAt, value);
+            set => UpdateProperty(() => () => _state.CreatedAt, value);
         }
 
         public Guid JobId
         {
             get => _state.JobId;
-            set => UpdateProperty(() => _state.JobId, value);
+            set => UpdateProperty(() => () => _state.JobId, value);
         }
 
         public JobModel Job => Single<JobModel>(JobId);
@@ -47,19 +47,19 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities
         public string Name
         {
             get => _state.Name;
-            set => UpdateProperty(() => _state.Name, value);
+            set => UpdateProperty(() => () => _state.Name, value);
         }
 
         public string Reason
         {
             get => _state.Reason;
-            set => UpdateProperty(() => _state.Reason, value);
+            set => UpdateProperty(() => () => _state.Reason, value);
         }
         
         public string Data
         {
             get => _state.Data;
-            set => UpdateProperty(() => _state.Data, value);
+            set => UpdateProperty(() => () => _state.Data, value);
         }
     }    
 }

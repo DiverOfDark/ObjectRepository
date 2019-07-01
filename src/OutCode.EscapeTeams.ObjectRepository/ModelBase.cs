@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -62,27 +63,49 @@ namespace OutCode.EscapeTeams.ObjectRepository
         }
 
         public event Action<ModelChangedEventArgs> PropertyChanging;
-
-        protected void UpdateProperty<T>(Expression<Func<T>> expressionGetter, T newValue)
+        
+        protected void UpdateProperty<T>(Func<Expression<Func<T>>> expressionGetter, T newValue)
         {
-            var propertyExpr = (MemberExpression) expressionGetter.Body;
+            var c = PropertyUpdater<T>.GetPropertyUpdater(expressionGetter);
+            
+            var oldValue = c.UpdateValue(newValue);
 
-            var source = (MemberExpression) propertyExpr.Expression;
-            var entityInfo = (FieldInfo) source.Member;
-            var owner = (ConstantExpression) source.Expression;
-            var entityOwner = owner.Value;
-
-            var getDelegate = entityInfo.GetOrCreateGetDelegate();
-
-            var entity = getDelegate(entityOwner);
-
-            var propertyInfo = (PropertyInfo) propertyExpr.Member;
-
-            var oldValue = propertyInfo.GetOrCreateGetter().DynamicInvoke(entity);
-            propertyInfo.GetOrCreateSetter().DynamicInvoke(entity, newValue);
-
-            PropertyChanging?.Invoke(ModelChangedEventArgs.PropertyChange(this, propertyInfo.Name, oldValue, newValue));
+            PropertyChanging?.Invoke(ModelChangedEventArgs.PropertyChange(this, c.Name, oldValue, newValue));
         }
 
+        private class PropertyUpdater<T>
+        {
+            private static readonly ConcurrentDictionary<Func<Expression<Func<T>>>, PropertyUpdater<T>> Cache = new ConcurrentDictionary<Func<Expression<Func<T>>>, PropertyUpdater<T>>();
+            private readonly object _entity;
+            private readonly PropertyInfo _propertyInfo;
+
+            public static PropertyUpdater<T> GetPropertyUpdater(Func<Expression<Func<T>>> expressionGetter) => Cache.GetOrAdd(expressionGetter, x => new PropertyUpdater<T>(x));
+
+            private PropertyUpdater(Func<Expression<Func<T>>> expressionGetter)
+            {
+                var propertyExpr = (MemberExpression) expressionGetter().Body;
+
+                var source = (MemberExpression) propertyExpr.Expression;
+                var entityInfo = (FieldInfo) source.Member;
+                var owner = (ConstantExpression) source.Expression;
+                var entityOwner = owner.Value;
+
+                var getDelegate = entityInfo.GetOrCreateGetDelegate();
+
+                _entity = getDelegate(entityOwner);
+
+                _propertyInfo = (PropertyInfo) propertyExpr.Member;
+            }
+
+            public string Name => _propertyInfo.Name;
+
+
+            public T UpdateValue(T newValue)
+            {
+                var oldValue = (T)_propertyInfo.GetOrCreateGetter().DynamicInvoke(_entity);
+                _propertyInfo.GetOrCreateSetter().DynamicInvoke(_entity, newValue);
+                return oldValue;
+            }
+        }
     }
 }

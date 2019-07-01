@@ -15,6 +15,8 @@ namespace OutCode.EscapeTeams.ObjectRepository
         private readonly List<Task> _tasks = new List<Task>();
         private bool _typeAdded;
 
+        internal bool _setsAreReady;
+
         protected readonly ConcurrentDictionary<Type, ITableDictionary<ModelBase>> _sets = new ConcurrentDictionary<Type, ITableDictionary<ModelBase>>();
         private bool _isReadOnly;
         
@@ -88,6 +90,8 @@ namespace OutCode.EscapeTeams.ObjectRepository
             
             Task.WaitAll(_tasks.ToArray());
 
+            _setsAreReady = true;
+
             Parallel.ForEach(_sets.Keys, key =>
             {
                 try
@@ -97,21 +101,16 @@ namespace OutCode.EscapeTeams.ObjectRepository
                     var properties =
                         key.GetTypeInfo()
                             .GetProperties()
-                            .Where(
-                                v =>
-                                    v.PropertyType.FullName.Contains("EscapeTeams") ||
-                                    v.PropertyType.FullName.Contains("IEnumerable"))
-                            .Select(
-                                v => v.GetMethod.CreateDelegate(typeof(Func<,>).MakeGenericType(key, v.PropertyType)))
+                            .Select(v => v.GetMethod.CreateDelegate(typeof(Func<,>).MakeGenericType(key, v.PropertyType)))
                             .ToList();
 
                     sw.Start();
 
                     foreach (var item in (dynamic) _sets[key])
                     {
-                        foreach (var p in properties)
+                        foreach (dynamic p in properties)
                         {
-                            p.DynamicInvoke(item);
+                            p(item);
                         }
                     }
 
@@ -148,7 +147,7 @@ namespace OutCode.EscapeTeams.ObjectRepository
 
         private void ThrowIfLoading() 
         {
-            if (IsLoading)
+            if (IsLoading && !_setsAreReady)
             { 
                 var total = _tasks?.Count ?? 1;
                 var finished = _tasks?.Count(s => s.IsCompleted) ?? 0;

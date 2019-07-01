@@ -45,13 +45,13 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
         public string Property
         {
             get => ((ChildEntity) Entity).Property;
-            set => UpdateProperty(() => _myEntity.Property, value);
+            set => UpdateProperty(() => () => _myEntity.Property, value);
         }
 
         public Guid ParentId
         {
             get => ((ChildEntity) Entity).ParentId;
-            set => UpdateProperty(() => _myEntity.ParentId, value);
+            set => UpdateProperty(() => () => _myEntity.ParentId, value);
         }
 
         public ParentModel Parent => Single<ParentModel>(ParentId);

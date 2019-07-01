@@ -122,13 +122,13 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             public string Property
             {
                 get => _entity.Property;
-                set => UpdateProperty(() => _entity.Property, value);
+                set => UpdateProperty(() => () => _entity.Property, value);
             }
 
             public Guid TestId
             {
                 get => _entity.Id;
-                set => UpdateProperty(() => _entity.Id, value);
+                set => UpdateProperty(() => () => _entity.Id, value);
             }
 
             protected override BaseEntity Entity => _entity;
@@ -151,13 +151,13 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             public Guid? NullableId
             {
                 get => _entity.NullableId;
-                set => UpdateProperty(() => _entity.NullableId, value);
+                set => UpdateProperty(() => () => _entity.NullableId, value);
             }
 
             public Guid TestId
             {
                 get => _entity.Id;
-                set => UpdateProperty(() => _entity.Id, value);
+                set => UpdateProperty(() => () => _entity.Id, value);
             }
 
             public IEnumerable<ChildModel> Children => Multiple<ChildModel>(() => x => x.ParentId);
@@ -187,19 +187,19 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             public Guid TestId
             {
                 get => _entity.Id;
-                set => UpdateProperty(() => _entity.Id, value);
+                set => UpdateProperty(() => () => _entity.Id, value);
             }
 
             public Guid? NullableTestId
             {
                 get => _entity.NullableId;
-                set => UpdateProperty(() => _entity.NullableId, value);
+                set => UpdateProperty(() => () => _entity.NullableId, value);
             }
 
             public Guid ParentId
             {
                 get => _entity.ParentId;
-                set => UpdateProperty(() => _entity.ParentId, value);
+                set => UpdateProperty(() => () => _entity.ParentId, value);
             }
 
             public ParentModel Parent => Single<ParentModel>(ParentId);
