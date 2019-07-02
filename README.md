@@ -87,7 +87,7 @@ public class ParentModel : ModelBase
     }
     
     // 1-Many relation
-    public IEnumerable<ChildModel> Children => Multiple<ChildModel>(x => x.ParentId);
+    public IEnumerable<ChildModel> Children => Multiple<ChildModel>(() => x => x.ParentId);
     
     protected override BaseEntity Entity { get; }
 }
@@ -109,13 +109,13 @@ public class ChildModel : ModelBase
     public Guid ParentId
     {
         get => _childEntity.ParentId;
-        set => UpdateProperty(() => _childEntity.ParentId, value);
+        set => UpdateProperty(() => () => _childEntity.ParentId, value);
     }
     
     public string Value
     {
         get => _childEntity.Value;
-        set => UpdateProperty(() => _childEntity.Value, value);
+        set => UpdateProperty(() => () => _childEntity.Value, value);
     }
     
     // Indexed access
@@ -199,48 +199,45 @@ repository.Remove<ParentModel>(x => !x.Children.Any());
 
 Deletion also happens via queue in background thread.
 
-## Как работает сохранение?
+## How saving actually works?
 
-*ObjectRepository* при изменении отслеживаемых объектов (как добавление или удаление, так и изменение свойств) вызывает событие *ModelChanged*, на которое подписан *IStorage*. Реализации *IStorage* при возникновении события *ModelChanged* складывают изменения в 3 очереди - на добавление, на обновление, и на удаление.
+When any object set tracked by *ObjectRepository* is changed (i.e. added, removed, property update) then event *ModelChanged* is raised.
+*IStorage*, which is used for persistence, is subscribed to this event. All implementations of *IStorage* are enqueueing all *ModelChanged* events to 3 different queues - for addition, update, and removal.
 
-Также реализации *IStorage* при инициализации создают таймер, который каждые 5 секунд вызывает сохранение изменений. 
+Also each kind of *IStorage* creates timer which every 5 secs invokes actual saving.
 
-*Кроме того существует API для принудительного вызова сохранения: **ObjectRepository.Save()**.*
+*BTW, there exists separate API for explicit saving: **ObjectRepository.Save()**.*
 
-Перед каждым сохранением сначала происходит удаление из очередей бессмысленных операций (например дубликаты событий - когда объект менялся дважды или быстрое добавление/удаление объектов), и только потом само сохранение. 
+Before each saving unneccessary operations are removed from the queue (i.e. multiple property changes, adding and removal of same object). After queue is sanitized actual saving is performed. 
 
-*Во всех случаях сохраняется актуальный объект целиком, поэтому возможна ситуация, когда объекты сохраняются в другом порядке, чем менялись, в том числе могут сохраняться более новые версии объектов, чем на момент добавления в очередь.*
+*In all cases when object is persisted - it is persisted as a whole. So it is possible a scenario when objects are saving in different order than they were changed, including objects being saved with newer property values than were at the time of adding to queue.*
 
-## Что есть ещё?
+## What else?
 
-- Все библиотеки основаны на .NET Standard 2.0. Можно использовать в любом современном .NET проекте.
-- API потокобезопасен. Внутренние коллекции реализованы на базе *ConcurrentDictionary*, обработчики событий имеют либо блокировки, либо не нуждаются в них. 
-Единственное о чем стоит помнить - при завершении приложения вызвать *ObjectRepository.Save();*
-- Произвольные индексы (требуют уникальность):
+- All libraries are targeted to .NET Standard 2.0. ObjectRepository can be used in any modern .NET app.
+- All API is thread-safe. Inner collections are based on *ConcurrentDictionary* and all handlers are either have locks or don't need them. 
+- Only thing you should remember - don't forget to call *ObjectRepository.Save();* when your app is going to shutdown
+- If you need fast search - you can use custom indexes (works only for unique values):
 
 ```cs
-repository.Set<ChildModel>().AddIndex(x => x.Value);
-repository.Set<ChildModel>().Find(x => x.Value, "myValue");
+repository.Set<ChildModel>().AddIndex(() => x => x.Value);
+repository.Set<ChildModel>().Find(() => x => x.Value, "myValue");
 ```
 
-## Кто это использует?
+## Who uses this?
 
-Лично я начал использовать этот подход во всех хобби-проектах, потому что это удобно, и не требует больших затрат на написание слоя доступа к данным или разворачивания тяжелой инфраструктуры. Лично мне, как правило, достаточно хранения данных в litedb или в файле. 
+I am using this library in all my hobby projects because it is simple and handy. In most cases I don't have to set up SQL Server or use some pricey cloud service - LiteDB/file-based approach is fine.
 
-Но в прошлом, когда с командой делали ныне почивший стартап EscapeTeams (*думал вот они, деньги - ан нет, опять опыт*) - использовали для хранения данных Azure Table Storage.
+A while ago, when I was bootstrapping EscapeTeams startup - we used Azure Table Storage as backing storage.
 
-## Планы на будущее
+## Plans for future
 
-Хочется починить один из основных минусов данного подхода - горизонтальное масштабирование. Для этого нужны либо распределенные транзакции (sic!), либо принять волевое решение, что одни и те же данные из разных инстансов меняться не должны, либо пускай меняются по принципу "кто последний - тот и прав".
+We want to solve major pain point of current approach - horizontal scaling. For this to happen we need to either implement distributed transactions(sic!) or to accept the fact that same objects in different instances should be not changed at the same moment of time (or latest who changed wins).
 
-С технической точки зрения я вижу возможной следующую схему:
+From tech point of view this can be solved in following way:
 
-- Хранить вместо объектной модели EventLog и Snapshot
-- Находить другие инстансы (добавлять в настройки конечные точки всех инстансов? udp discovery? master/slave?)
-- Реплицировать между инстансами EventLog через любой из алгоритмов консенсуса, например RAFT.
+- Store event log and snapshot instead of actual model
+- Find other instances (add endpoints to settings? use udp discovery? master/slave or peers?)
+- Replicate eventlog between instances using any consensus algo, i.e. raft.
 
-Так же существует ещё одна проблема, которая меня беспокоит - это каскадное удаление, либо обнаружение случаев удаления объектов, на которые есть ссылки из других объектов. 
-
-## Исходный код
-Если вы дочитали до сюда - то дальше остается читать только код, его можно 
-[найти на GitHub](https://github.com/DiverOfDark/ObjectRepository).
+Other issue that exists (and worries me) is cascade deletion(and finding cases when you are deleting object that is being references by some other object). It is just not implemented, and currently exceptions may be thrown when such issue happens.
