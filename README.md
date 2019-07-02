@@ -41,7 +41,7 @@ In a nutshell:
 ## Usage:
 
 ```cs
-Required dependencies:
+// Required dependencies:
   
 // Core library
 Install-Package OutCode.EscapeTeams.ObjectRepository
@@ -132,12 +132,12 @@ public class MyObjectRepository : ObjectRepositoryBase
 {
     public MyObjectRepository(IStorage storage) : base(storage, NullLogger.Instance)
     {
-        IsReadOnly = true; // Для тестов, позволяет не сохранять изменения в базу
+        IsReadOnly = true; // For testing purposes. Allows to not save changes to database.
     
         AddType((ParentEntity x) => new ParentModel(x));
         AddType((ChildEntity x) => new ChildModel(x));
     
-        // Если используется Hangfire и необходимо хранить модель данных для Hangfire в ObjectRepository
+        //// If you are using hangfire and want to store it's data in this objectrepo - uncomment this
         // this.RegisterHangfireScheme(); 
     
         Initialize();
@@ -180,7 +180,7 @@ var myParent = parents.Find(newParent.Id);
 Assert.IsTrue(ReferenceEquals(myParent, newParent));
 ```
 
-What happens here? *Set<ParentModel>()* returns *TableDictionary<ParentModel>* which is essentially ConcurrentDictionary<ParentModel, ParentModel>* and provides additional methods for indexes. This allows to have a Find methods to search by Id (or other fields) without iterating all objects.
+What happens here? *Set&lt;ParentModel&gt;()* returns *TableDictionary&lt;ParentModel&gt;* which is essentially *ConcurrentDictionary&lt;ParentModel, ParentModel&gt;* and provides additional methods for indexes. This allows to have a Find methods to search by Id (or other fields) without iterating all objects.
 
 When you add something to *ObjectRepository* subscription to property changes is created, thus any property change also add object to write queue.
 Property updating looks just like regular POCO object::
