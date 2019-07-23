@@ -64,24 +64,24 @@ namespace OutCode.EscapeTeams.ObjectRepository
 
         public event Action<ModelChangedEventArgs> PropertyChanging;
         
-        protected void UpdateProperty<T>(Func<Expression<Func<T>>> expressionGetter, T newValue)
+        protected void UpdateProperty<TValue,TEntity>(TEntity entity, Func<Expression<Func<TEntity, TValue>>> expressionGetter, TValue newValue)
         {
-            var c = PropertyUpdater<T>.GetPropertyUpdater(expressionGetter);
+            var c = PropertyUpdater<TEntity, TValue>.GetPropertyUpdater(expressionGetter);
             
             var oldValue = c.UpdateValue(newValue);
 
             PropertyChanging?.Invoke(ModelChangedEventArgs.PropertyChange(this, c.Name, oldValue, newValue));
         }
 
-        private class PropertyUpdater<T>
+        private class PropertyUpdater<TEntity, TValue>
         {
-            private static readonly ConcurrentDictionary<Func<Expression<Func<T>>>, PropertyUpdater<T>> Cache = new ConcurrentDictionary<Func<Expression<Func<T>>>, PropertyUpdater<T>>();
+            private static readonly ConcurrentDictionary<Func<Expression<Func<TEntity, TValue>>>, PropertyUpdater<TEntity, TValue>> Cache = new ConcurrentDictionary<Func<Expression<Func<TEntity, TValue>>>, PropertyUpdater<TEntity, TValue>>();
             private readonly object _entity;
             private readonly PropertyInfo _propertyInfo;
 
-            public static PropertyUpdater<T> GetPropertyUpdater(Func<Expression<Func<T>>> expressionGetter) => Cache.GetOrAdd(expressionGetter, x => new PropertyUpdater<T>(x));
+            public static PropertyUpdater<TEntity, TValue> GetPropertyUpdater(Func<Expression<Func<TEntity, TValue>>> expressionGetter) => Cache.GetOrAdd(expressionGetter, x => new PropertyUpdater<TEntity, TValue>(x));
 
-            private PropertyUpdater(Func<Expression<Func<T>>> expressionGetter)
+            private PropertyUpdater(Func<Expression<Func<TEntity, TValue>>> expressionGetter)
             {
                 var propertyExpr = (MemberExpression) expressionGetter().Body;
 
@@ -100,9 +100,9 @@ namespace OutCode.EscapeTeams.ObjectRepository
             public string Name => _propertyInfo.Name;
 
 
-            public T UpdateValue(T newValue)
+            public TValue UpdateValue(TValue newValue)
             {
-                var oldValue = (T)_propertyInfo.GetOrCreateGetter().DynamicInvoke(_entity);
+                var oldValue = (TValue)_propertyInfo.GetOrCreateGetter().DynamicInvoke(_entity);
                 _propertyInfo.GetOrCreateSetter().DynamicInvoke(_entity, newValue);
                 return oldValue;
             }

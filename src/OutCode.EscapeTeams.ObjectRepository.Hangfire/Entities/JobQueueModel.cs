@@ -31,17 +31,17 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities
         public Guid JobId 
         {
             get => _jobQueue.JobId;
-            set => UpdateProperty(() => () => _jobQueue.JobId, value);
+            set => UpdateProperty(_jobQueue, () => x => _jobQueue.JobId, value);
         }
         public string Queue 
         {
             get => _jobQueue.Queue;
-            set => UpdateProperty(() => () => _jobQueue.Queue, value);
+            set => UpdateProperty(_jobQueue, () => x => _jobQueue.Queue, value);
         }
         public DateTime? FetchedAt 
         {
             get => _jobQueue.FetchedAt;
-            set => UpdateProperty(() => () => _jobQueue.FetchedAt, value);
+            set => UpdateProperty(_jobQueue, () => x => _jobQueue.FetchedAt, value);
         }
 
         public JobModel Job => Single<JobModel>(JobId);
