@@ -34,25 +34,25 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities
         public DateTime? ExpireAt
         {
             get => _hash.ExpireAt;
-            set => UpdateProperty(_hash, () => x => _hash.ExpireAt, value);
+            set => UpdateProperty(_hash, () => x => x.ExpireAt, value);
         }
 
         public string Field
         {
             get => _hash.Field;
-            set => UpdateProperty(_hash, () => x => _hash.Field, value);
+            set => UpdateProperty(_hash, () => x => x.Field, value);
         }
 
         public string Key
         {
             get => _hash.Key;
-            set => UpdateProperty(_hash, () => x => _hash.Key, value);
+            set => UpdateProperty(_hash, () => x => x.Key, value);
         }
 
         public string Value
         {
             get => _hash.Value;
-            set => UpdateProperty(_hash, () => x => _hash.Value, value);
+            set => UpdateProperty(_hash, () => x => x.Value, value);
         }
     }
 }

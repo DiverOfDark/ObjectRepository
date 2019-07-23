@@ -32,19 +32,19 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities
         public string Data
         {
             get => _server.Data;
-            set => UpdateProperty(_server, () => x => _server.Data, value);
+            set => UpdateProperty(_server, () => x => x.Data, value);
         }
 
         public DateTime LastHeartbeat
         {
             get => _server.LastHeartbeat;
-            set => UpdateProperty(_server, () => x => _server.LastHeartbeat, value);
+            set => UpdateProperty(_server, () => x => x.LastHeartbeat, value);
         }
 
         public string Name
         {
             get => _server.Name;
-            set => UpdateProperty(_server, () => x => _server.Name, value);
+            set => UpdateProperty(_server, () => x => x.Name, value);
         }
     }
 }

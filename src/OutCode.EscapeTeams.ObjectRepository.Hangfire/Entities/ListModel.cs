@@ -33,19 +33,19 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities
         public DateTime? ExpireAt
         {
             get => _list.ExpireAt;
-            set => UpdateProperty(_list, () => x => _list.ExpireAt, value);
+            set => UpdateProperty(_list, () => x => x.ExpireAt, value);
         }
 
         public string Key
         {
             get => _list.Key;
-            set => UpdateProperty(_list, () => x => _list.Key, value);
+            set => UpdateProperty(_list, () => x => x.Key, value);
         }
 
         public string Value
         {
             get => _list.Value;
-            set => UpdateProperty(_list, () => x => _list.Value, value);
+            set => UpdateProperty(_list, () => x => x.Value, value);
         }
     }
 }

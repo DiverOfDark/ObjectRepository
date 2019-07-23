@@ -33,19 +33,19 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities
         public Guid JobId
         {
             get => _jobParameter.JobId;
-            set => UpdateProperty(_jobParameter, () => x => _jobParameter.JobId, value);
+            set => UpdateProperty(_jobParameter, () => x => x.JobId, value);
         }
 
         public string Name
         {
             get => _jobParameter.Name;
-            set => UpdateProperty(_jobParameter, () => x => _jobParameter.Name, value);
+            set => UpdateProperty(_jobParameter, () => x => x.Name, value);
         }
 
         public string Value
         {
             get => _jobParameter.Value;
-            set => UpdateProperty(_jobParameter, () => x => _jobParameter.Value, value);
+            set => UpdateProperty(_jobParameter, () => x => x.Value, value);
         }
     }
 }

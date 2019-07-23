@@ -32,13 +32,13 @@ namespace OutCode.EscapeTeams.ObjectRepository.Hangfire.Entities
         public DateTime? ExpireAt
         {
             get => _counter.ExpireAt;
-            set => UpdateProperty(_counter, () => x => _counter.ExpireAt, value);
+            set => UpdateProperty(_counter, () => x => x.ExpireAt, value);
         }
 
         public string Key
         {
             get => _counter.Key;
-            set => UpdateProperty(_counter, () => x => _counter.Key, value);
+            set => UpdateProperty(_counter, () => x => x.Key, value);
         }
 
         public int Value

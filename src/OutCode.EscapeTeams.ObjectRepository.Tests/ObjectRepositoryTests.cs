@@ -146,6 +146,39 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             Assert.AreEqual(child, instance.Set<ChildModel>().Find(() => x => x.Property, "3"));
         }
 
+        [TestMethod]
+        public void TestThatPropertyUpdaterNotLeaks()
+        {
+            var id = Guid.NewGuid();
+            var testStorage = new TestStorage
+            {
+                new ParentEntity(id),
+                new ChildEntity(Guid.NewGuid()) {ParentId = id, Property = "1"},
+                new ChildEntity(Guid.NewGuid()) {ParentId = id, Property = "2"}
+            };
+
+            var instance = new TestObjectRepository(testStorage);
+
+            // When
+            instance.WaitForInitialize().GetAwaiter().GetResult();
+
+            instance.Set<ChildModel>().AddIndex(() => x => x.Property);
+            var child = instance.Set<ChildModel>().Find(() => x => x.Property, "2");
+
+            Assert.IsNotNull(child);
+            Assert.AreEqual(child.Property, "2");
+
+            child.Property = "3";
+
+            var count = ModelBase.PropertyUpdater<ChildEntity, string>.Cache.Count;
+            
+            child.Property = "2";
+
+            var newCount = ModelBase.PropertyUpdater<ChildEntity, string>.Cache.Count;
+            
+            Assert.AreEqual(count, newCount, "Memory leak!");
+        }
+
         [TestMethod, Ignore("TODO finds out how to find which property on which object needs to be reset when such happens.")]
         public void TestThatDeletingParentDoesntBreaks()
         {

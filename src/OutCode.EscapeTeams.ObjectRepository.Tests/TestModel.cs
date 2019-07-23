@@ -28,7 +28,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
         public IEnumerable<ChildModel> Children => Multiple<ChildModel>(() => x => x.ParentId);
         public IEnumerable<ChildModel> OptionalChildren => Multiple<ChildModel>(() => x => x.NullableTestId);
 
-        protected override BaseEntity Entity { get; }
+        protected internal override BaseEntity Entity { get; }
     }
 
     public class ChildModel : ModelBase
@@ -45,7 +45,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
         public string Property
         {
             get => ((ChildEntity) Entity).Property;
-            set => UpdateProperty(_myEntity, () => x => _myEntity.Property, value);
+            set => UpdateProperty(_myEntity, () => x => x.Property, value);
         }
 
         public Guid ParentId
@@ -57,6 +57,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
         public ParentModel Parent => Single<ParentModel>(ParentId);
         public ParentModel ParentOptional => Single<ParentModel>(NullableTestId);
 
-        protected override BaseEntity Entity => _myEntity;
+        protected internal override BaseEntity Entity => _myEntity;
     }
 }

@@ -131,7 +131,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
                 set => UpdateProperty(_entity, () => x => _entity.Id, value);
             }
 
-            protected override BaseEntity Entity => _entity;
+            protected internal override BaseEntity Entity => _entity;
         }
 
         public class ParentModel : ModelBase
@@ -163,7 +163,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             public IEnumerable<ChildModel> Children => Multiple<ChildModel>(() => x => x.ParentId);
             public IEnumerable<ChildModel> OptionalChildren => Multiple<ChildModel>(() => x => x.NullableTestId);
 
-            protected override BaseEntity Entity => _entity;
+            protected internal override BaseEntity Entity => _entity;
         }
 
         public class ChildModel : ModelBase
@@ -205,7 +205,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             public ParentModel Parent => Single<ParentModel>(ParentId);
             public ParentModel ParentOptional => Single<ParentModel>(NullableTestId);
 
-            protected override BaseEntity Entity => _entity;
+            protected internal override BaseEntity Entity => _entity;
         }
         
         [TestMethod]

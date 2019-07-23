@@ -68,15 +68,14 @@ namespace OutCode.EscapeTeams.ObjectRepository
         {
             var c = PropertyUpdater<TEntity, TValue>.GetPropertyUpdater(expressionGetter);
             
-            var oldValue = c.UpdateValue(newValue);
+            var oldValue = c.UpdateValue(entity, newValue);
 
             PropertyChanging?.Invoke(ModelChangedEventArgs.PropertyChange(this, c.Name, oldValue, newValue));
         }
 
-        private class PropertyUpdater<TEntity, TValue>
+        internal class PropertyUpdater<TEntity, TValue>
         {
-            private static readonly ConcurrentDictionary<Func<Expression<Func<TEntity, TValue>>>, PropertyUpdater<TEntity, TValue>> Cache = new ConcurrentDictionary<Func<Expression<Func<TEntity, TValue>>>, PropertyUpdater<TEntity, TValue>>();
-            private readonly object _entity;
+            internal static readonly ConcurrentDictionary<Func<Expression<Func<TEntity, TValue>>>, PropertyUpdater<TEntity, TValue>> Cache = new ConcurrentDictionary<Func<Expression<Func<TEntity, TValue>>>, PropertyUpdater<TEntity, TValue>>();
             private readonly PropertyInfo _propertyInfo;
 
             public static PropertyUpdater<TEntity, TValue> GetPropertyUpdater(Func<Expression<Func<TEntity, TValue>>> expressionGetter) => Cache.GetOrAdd(expressionGetter, x => new PropertyUpdater<TEntity, TValue>(x));
@@ -85,25 +84,16 @@ namespace OutCode.EscapeTeams.ObjectRepository
             {
                 var propertyExpr = (MemberExpression) expressionGetter().Body;
 
-                var source = (MemberExpression) propertyExpr.Expression;
-                var entityInfo = (FieldInfo) source.Member;
-                var owner = (ConstantExpression) source.Expression;
-                var entityOwner = owner.Value;
-
-                var getDelegate = entityInfo.GetOrCreateGetDelegate();
-
-                _entity = getDelegate(entityOwner);
-
                 _propertyInfo = (PropertyInfo) propertyExpr.Member;
             }
 
             public string Name => _propertyInfo.Name;
 
 
-            public TValue UpdateValue(TValue newValue)
+            public TValue UpdateValue(TEntity entity, TValue newValue)
             {
-                var oldValue = (TValue)_propertyInfo.GetOrCreateGetter().DynamicInvoke(_entity);
-                _propertyInfo.GetOrCreateSetter().DynamicInvoke(_entity, newValue);
+                var oldValue = (TValue)_propertyInfo.GetOrCreateGetter().DynamicInvoke(entity);
+                _propertyInfo.GetOrCreateSetter().DynamicInvoke(entity, newValue);
                 return oldValue;
             }
         }
