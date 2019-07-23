@@ -109,13 +109,13 @@ public class ChildModel : ModelBase
     public Guid ParentId
     {
         get => _childEntity.ParentId;
-        set => UpdateProperty(() => () => _childEntity.ParentId, value);
+        set => UpdateProperty(_childEntity, () => x => x.ParentId, value);
     }
     
     public string Value
     {
         get => _childEntity.Value;
-        set => UpdateProperty(() => () => _childEntity.Value, value);
+        set => UpdateProperty(_childEntity, () => x => x.Value, value);
     }
     
     // Indexed access
