@@ -179,6 +179,35 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             Assert.AreEqual(count, newCount, "Memory leak!");
         }
 
+        [TestMethod]
+        public void TestThatNoNotifyWhenValueNotChanged()
+        {
+            var id = Guid.NewGuid();
+            var testStorage = new TestStorage
+            {
+                new ChildEntity(Guid.NewGuid()) {ParentId = id, Property = "2"}
+            };
+
+            var instance = new TestObjectRepository(testStorage);
+
+            // When
+            var child = instance.Set<ChildModel>().First();
+
+            Assert.IsNotNull(child);
+            var shouldFail = false;
+            instance.ModelChanged += (a) =>
+            {
+                if (shouldFail)
+                    throw new Exception();
+            };
+            
+            child.Property = "3";
+            shouldFail = true;
+            child.Property = "3";
+            shouldFail = false;
+            child.Property = "2";
+        }
+
         [TestMethod, Ignore("TODO finds out how to find which property on which object needs to be reset when such happens.")]
         public void TestThatDeletingParentDoesntBreaks()
         {

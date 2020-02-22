@@ -70,7 +70,10 @@ namespace OutCode.EscapeTeams.ObjectRepository
             
             var oldValue = c.UpdateValue(entity, newValue);
 
-            PropertyChanging?.Invoke(ModelChangedEventArgs.PropertyChange(this, c.Name, oldValue, newValue));
+            if (!Equals(oldValue, newValue))
+            {
+                PropertyChanging?.Invoke(ModelChangedEventArgs.PropertyChange(this, c.Name, oldValue, newValue));
+            }
         }
 
         internal class PropertyUpdater<TEntity, TValue>
