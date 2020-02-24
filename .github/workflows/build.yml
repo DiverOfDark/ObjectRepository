@@ -13,8 +13,18 @@ jobs:
       with:
         dotnet-version: 3.1.100
 
+    - name: Generate build number
+      uses: einaregilsson/build-number@v2 
+      with:
+        token: ${{secrets.github_token}}      
+
     - name: Build with dotnet
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       env: 
         NUGET: ${{ secrets.NUGET }}
-      run: .\build.cmd
+      run: |
+        cd src 
+        dotnet restore
+        dotnet build
+        dotnet test
+        dotnet pack -p:PackageVersion=${env:BUILD_NUMBER}
