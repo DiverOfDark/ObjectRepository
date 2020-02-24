@@ -24,7 +24,6 @@ jobs:
         NUGET: ${{ secrets.NUGET }}
       run: |
         cd src 
-        dotnet restore
         dotnet build
         dotnet test
-        dotnet pack -p:PackageVersion=${env:BUILD_NUMBER}
+        dotnet pack -p:PackageVersion=1.0.${env:BUILD_NUMBER}
