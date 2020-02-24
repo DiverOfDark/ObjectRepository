@@ -32,4 +32,4 @@ jobs:
       run: |
         cd src 
         dotnet pack -p:PackageVersion=1.0.${env:BUILD_NUMBER} -o nugets -c Release
-        dotnet nuget push nugets\* -k ${env:NUGET} -s https://api.nuget.org/v3/index.json
+        dotnet nuget push nugets\*.nupkg -k ${env:NUGET} -s https://api.nuget.org/v3/index.json
