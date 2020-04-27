@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace OutCode.EscapeTeams.ObjectRepository 
 {
-    public abstract class ModelBase
+    public abstract class ModelBase : INotifyPropertyChanged
     {
         /// <summary>
         /// Primary key of this object.
@@ -73,6 +74,7 @@ namespace OutCode.EscapeTeams.ObjectRepository
             if (!Equals(oldValue, newValue))
             {
                 PropertyChanging?.Invoke(ModelChangedEventArgs.PropertyChange(this, c.Name, oldValue, newValue));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(c.Name));
             }
         }
 
@@ -100,5 +102,7 @@ namespace OutCode.EscapeTeams.ObjectRepository
                 return oldValue;
             }
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 }

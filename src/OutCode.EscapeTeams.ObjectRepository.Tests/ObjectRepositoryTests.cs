@@ -47,6 +47,31 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             Assert.AreEqual(childModel.ParentOptional, null);
         }
 
+        [TestMethod
+        ]
+        public void TestThatSingleOnUnattachedItemDoesNotThrows()
+        {
+            // Given
+            var id = Guid.NewGuid();
+            var testStorage = new TestStorage
+            {
+                new ParentEntity(id),
+            };
+
+            var instance = new TestObjectRepository(testStorage);
+
+            // When
+            instance.WaitForInitialize().GetAwaiter().GetResult();
+
+            // Then
+            // no exceptions
+
+            var parentModel = instance.Set<ParentModel>().Single();
+            
+            var childModel = new ChildModel(new ChildEntity(Guid.NewGuid()));
+            childModel.Parent = parentModel;
+        }
+
         [TestMethod]
         public void TestThatDeletingChildrenDoesntBreaks()
         {

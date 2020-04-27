@@ -54,7 +54,12 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
             set => UpdateProperty(_myEntity, () => x => x.ParentId, value);
         }
 
-        public ParentModel Parent => Single<ParentModel>(ParentId);
+        public ParentModel Parent
+        {
+            get => Single<ParentModel>(ParentId);
+            set => UpdateProperty(_myEntity, () => x => x.ParentId, value.Id);
+        }
+
         public ParentModel ParentOptional => Single<ParentModel>(NullableTestId);
 
         protected internal override BaseEntity Entity => _myEntity;
