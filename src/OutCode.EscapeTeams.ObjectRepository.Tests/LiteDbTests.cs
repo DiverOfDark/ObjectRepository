@@ -20,7 +20,6 @@ namespace OutCode.EscapeTeams.ObjectRepository.Tests
         protected override ObjectRepositoryBase CreateRepository()
         {
             var db = new LiteDatabase(_memory);
-
             var dbStorage = new LiteDbStorage(db);
             var objectRepo = new LiteDbTestObjectRepository(dbStorage);
             objectRepo.OnException += ex => Console.WriteLine(ex.ToString());

@@ -68,6 +68,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.LiteDB
                                 "Failed to remove entity from storage " + _mapper.ToDocument(x));
                         }
                     });
+                    _database.Checkpoint();
                 }
                 finally
                 {
@@ -91,7 +92,7 @@ namespace OutCode.EscapeTeams.ObjectRepository.LiteDB
         }
 
         private void ProcessAction(ConcurrentDictionary<Type, ConcurrentList<BaseEntity>> dictionary,
-            Action<BaseEntity, LiteCollection<BsonDocument>> entity)
+            Action<BaseEntity, ILiteCollection<BsonDocument>> entity)
         {
             foreach (var addPair in dictionary)
             {
