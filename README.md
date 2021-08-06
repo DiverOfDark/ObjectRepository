@@ -1,5 +1,5 @@
 # ObjectRepository
-Generic In-Memory Object Database (Repository pattern) [![Build status](https://ci.appveyor.com/api/projects/status/5ofaya2rcml1v3nq?svg=true)](https://ci.appveyor.com/project/DiverOfDark/objectrepository)
+Generic In-Memory Object Database (Repository pattern)
 
 ## Why store anything in memory?
 
