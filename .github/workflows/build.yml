@@ -19,17 +19,11 @@ jobs:
         dotnet build
         dotnet test
 
-    - name: Generate build number
-      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-      uses: einaregilsson/build-number@v2 
-      with:
-        token: ${{secrets.github_token}}      
-
     - name: Publish to NuGet.org
       if: github.event_name == 'push' && github.ref == 'refs/heads/master'
       env: 
         NUGET: ${{ secrets.NUGET }}
       run: |
         cd src 
-        dotnet pack -p:PackageVersion=1.0.${env:BUILD_NUMBER} -o nugets -c Release
+        dotnet pack -p:PackageVersion=2.0.${env:GITHUB_RUN_NUMBER} -o nugets -c Release
         dotnet nuget push nugets\*.nupkg -k ${env:NUGET} -s https://api.nuget.org/v3/index.json -n true
